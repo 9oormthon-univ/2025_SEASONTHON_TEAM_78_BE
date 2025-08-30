@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: backend
+  profiles:
+    group:
+      local: local
+      dev: dev
+---
+
+spring:
+  profiles:
+    active: local

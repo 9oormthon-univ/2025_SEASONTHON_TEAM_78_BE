@@ -11,7 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/challenge")
+@RequestMapping("/challenges")
 @RequiredArgsConstructor
 public class ChallengeController {
 
@@ -32,7 +32,7 @@ public class ChallengeController {
     @Operation(
             summary = "챌린지 삭제"
     )
-    @DeleteMapping
+    @DeleteMapping("/{challengeId}")
     public ResponseEntity<Void> deleteChallenge(@PathVariable Long challengeId) {
         challengeService.delete(challengeId);
 

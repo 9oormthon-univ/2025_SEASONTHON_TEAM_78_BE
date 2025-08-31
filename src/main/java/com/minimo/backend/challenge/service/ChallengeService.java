@@ -46,4 +46,13 @@ public class ChallengeService {
         return new CreateChallengeResponse(savedChallenge);
 
     }
+
+    @Transactional
+    public void delete(Long id) {
+        Challenge challenge = challengeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(id + " 게시물이 존재하지 않습니다."));
+
+        challengeRepository.delete(challenge);
+    }
+
 }

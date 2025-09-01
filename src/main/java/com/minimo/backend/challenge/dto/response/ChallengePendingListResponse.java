@@ -9,11 +9,7 @@ import java.util.Map;
 
 @Getter
 @Builder
-public class ChallengePendingResponse {
-
-    private Long id;
-    private String title;
-    private String challengeIcon;
-    private int achievementRate;
-    private int durationDays;
+public class ChallengePendingListResponse {
+    private Map<DayOfWeek, List<String>> weeklyIcons;
+    private List<ChallengePendingResponse> challenges;
 }

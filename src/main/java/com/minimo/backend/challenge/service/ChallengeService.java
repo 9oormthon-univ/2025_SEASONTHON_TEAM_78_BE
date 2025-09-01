@@ -5,6 +5,7 @@ import com.minimo.backend.certification.repository.CertificationRepository;
 import com.minimo.backend.challenge.domain.Challenge;
 import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
 import com.minimo.backend.challenge.dto.response.ChallengeDetailResponse;
+import com.minimo.backend.challenge.dto.response.ChallengePendingListResponse;
 import com.minimo.backend.challenge.dto.response.ChallengePendingResponse;
 import com.minimo.backend.challenge.dto.response.CreateChallengeResponse;
 import com.minimo.backend.challenge.repository.ChallengeRepository;
@@ -35,14 +36,14 @@ public class ChallengeService {
     private final UserRepository userRepository;
 
     @Transactional
-    public CreateChallengeResponse create(Long userId, CreateChallengeRequest request){
+    public CreateChallengeResponse create(Long userId, CreateChallengeRequest request) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException(userId + "유저를 찾을 수 없습니다."));
 
         // 종료일 계산
         LocalDate startDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        LocalDate endDate = startDate.plusDays(request.getDurationDays()-1L);
+        LocalDate endDate = startDate.plusDays(request.getDurationDays() - 1L);
 
         Challenge challenge = Challenge.builder()
                 .user(user)
@@ -68,15 +69,22 @@ public class ChallengeService {
     }
 
     @Transactional
-    public List<ChallengePendingResponse> findNotCertifiedToday(Long userId) {
+    public ChallengePendingListResponse findNotCertifiedToday(Long userId) {
 
         ZoneId zoneId = ZoneId.of("Asia/Seoul");
         LocalDate today = LocalDate.now(zoneId);
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end = start.plusDays(1).minusNanos(1);
 
+        LocalDate startOfWeekDate = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+        LocalDate endOfWeekDate = startOfWeekDate.plusDays(6);
+        LocalDateTime startOfWeek = startOfWeekDate.atStartOfDay();
+        LocalDateTime endOfWeek = endOfWeekDate.atTime(LocalTime.MAX);
+        Map<DayOfWeek, List<String>> weeklyIcons = buildWeeklyFirstThreeIcons(userId, startOfWeek, endOfWeek);
+
         List<Challenge> myChallenges = challengeRepository.findAllByUser_Id(userId);
-        return myChallenges.stream()
+
+        List<ChallengePendingResponse> items = myChallenges.stream()
                 .filter(ch -> !certificationRepository.existsByChallenge_IdAndUser_IdAndCreatedAtBetween(
                         ch.getId(), userId, start, end))
                 .map(ch -> {
@@ -92,21 +100,36 @@ public class ChallengeService {
                             .durationDays(totalDays)
                             .build();
                 })
-                .collect(Collectors.toList());
-    }
+                .toList();
+        return ChallengePendingListResponse.builder()
+                .weeklyIcons(weeklyIcons)
+                .challenges(items)
+                .build();
+        }
 
-    public List<ChallengePendingResponse> findCertifiedToday(Long userId) {
+    @Transactional
+    public ChallengePendingListResponse findCertifiedToday(Long userId) {
         // 오늘(Asia/Seoul)
         ZoneId zoneId = ZoneId.of("Asia/Seoul");
         LocalDate today = LocalDate.now(zoneId);
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end = start.plusDays(1).minusNanos(1);
 
+        // 이번 주(일~토)
+        LocalDate startOfWeekDate = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+        LocalDate endOfWeekDate = startOfWeekDate.plusDays(6);
+        LocalDateTime startOfWeek = startOfWeekDate.atStartOfDay();
+        LocalDateTime endOfWeek = endOfWeekDate.atTime(LocalTime.MAX);
+
+        // 주간 아이콘 한 번만 계산
+        Map<DayOfWeek, List<String>> weeklyIcons =
+                buildWeeklyFirstThreeIcons(userId, startOfWeek, endOfWeek);
+
         // 내가 만든(=참여하는) 챌린지
         List<Challenge> myChallenges = challengeRepository.findAllByUser_Id(userId);
 
-        // 오늘 인증 '한' 챌린지만 필터 + 달성률 계산 동일
-        return myChallenges.stream()
+        // 오늘 인증 "한" 챌린지만 필터 + 달성률 계산
+        List<ChallengePendingResponse> items = myChallenges.stream()
                 .filter(ch -> certificationRepository.existsByChallenge_IdAndUser_IdAndCreatedAtBetween(
                         ch.getId(), userId, start, end))
                 .map(ch -> {
@@ -120,9 +143,42 @@ public class ChallengeService {
                             .challengeIcon(ch.getChallengeIcon())
                             .achievementRate(rate)
                             .durationDays(totalDays)
+                            // weeklyIcons는 개별 아이템에 넣지 않음!
                             .build();
                 })
-                .collect(Collectors.toList());
+                .toList();
+
+        // 최상위 래퍼로 묶어서 반환
+        return ChallengePendingListResponse.builder()
+                .weeklyIcons(weeklyIcons)
+                .challenges(items)
+                .build();
+    }
+
+    private Map<DayOfWeek, List<String>> buildWeeklyFirstThreeIcons(
+            Long userId, LocalDateTime startOfWeek, LocalDateTime endOfWeek
+    ) {
+        // 요일 순서 고정 맵 준비 (SUNDAY → ... → SATURDAY)
+        Map<DayOfWeek, List<String>> result = new LinkedHashMap<>();
+        for (int i = 0; i < 7; i++) {
+            result.put(DayOfWeek.SUNDAY.plus(i), new ArrayList<>());
+        }
+
+        List<Certification> rows = certificationRepository
+                .findAllByUser_IdAndCreatedAtBetweenOrderByCreatedAtAsc(userId, startOfWeek, endOfWeek);
+
+        for (Certification c : rows) {
+            DayOfWeek dow = c.getCreatedAt().getDayOfWeek();
+            List<String> icons = result.get(dow);
+            if (icons.size() < 3) {
+                // Challenge 엔티티의 아이콘 문자열 게터에 맞춰 사용
+                icons.add(c.getChallenge().getChallengeIcon()); // 예: "물컵", "책"
+            }
+        }
+
+        // 불변 리스트로 감싸서 리턴(선택)
+        result.replaceAll((k, v) -> List.copyOf(v));
+        return result;
     }
 
     @Transactional

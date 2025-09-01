@@ -19,4 +19,7 @@ public interface CertificationRepository extends JpaRepository<Certification, Lo
 
     List<Certification> findByChallenge_IdAndUser_IdOrderByCreatedAtDesc(Long challengeId, Long userId);
 
+    List<Certification> findAllByUser_IdAndCreatedAtBetweenOrderByCreatedAtAsc(
+            Long userId, LocalDateTime start, LocalDateTime end
+    );
 }

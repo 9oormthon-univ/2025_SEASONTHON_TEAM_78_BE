@@ -1,9 +1,10 @@
-name: CD  # CD 워크플로우 이름
+name: CD
 
 on:
-  push:
-    branches:
-      - main  # main 브랜치에 push되면 실행
+  workflow_run:
+    workflows: ["CI"]  # CI 워크플로우 이름
+    types:
+      - completed  # CI 완료 후 실행
 
 jobs:
   deploy:

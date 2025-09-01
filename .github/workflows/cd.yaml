@@ -2,42 +2,39 @@ name: CD
 
 on:
   workflow_run:
-    workflows: ["CI"]
+    workflows: ["CI"]  # CI 워크플로우 이름
     types:
-      - completed
+      - completed  # CI 완료 후 실행
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # CI 성공 시만 실행
     runs-on: ubuntu-latest
 
     steps:
-      # 0️⃣ artifact 받을 디렉토리 생성
-      - name: Prepare build directory
-        run: mkdir -p build/libs/
+      # 1️⃣ 코드 체크아웃 (서비스 파일이나 스크립트 필요 시)
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      # 1️⃣ CI에서 빌드한 JAR 다운로드
+      # 2️⃣ JAR artifact 다운로드
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
         with:
-          name: backend-jar
-          path: ./build/libs/
+          name: backend-jar       # CI에서 업로드한 artifact 이름
+          path: ./build/libs/     # 임시 경로
 
-      # 2️⃣ .env 파일 생성 (JAR와 같은 디렉토리에)
+      # 3️⃣ .env 파일 생성
       - name: Create .env file
         run: |
-          echo "DEV_DB_HOST=${{ secrets.DEV_DB_HOST }}" >> build/libs/.env
-          echo "DEV_DB_PORT=${{ secrets.DEV_DB_PORT }}" >> build/libs/.env
-          echo "DEV_DB_NAME=${{ secrets.DEV_DB_NAME }}" >> build/libs/.env
-          echo "DEV_DB_USER=${{ secrets.DEV_DB_USER }}" >> build/libs/.env
-          echo "DEV_DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }}" >> build/libs/.env
-          echo "DEV_JWT_SECRET=${{ secrets.DEV_JWT_SECRET }}" >> build/libs/.env
-          echo "DEV_KAKAO_CLIENT_ID=${{ secrets.DEV_KAKAO_CLIENT_ID }}" >> build/libs/.env
-          echo "DEV_KAKAO_CLIENT_SECRET=${{ secrets.DEV_KAKAO_CLIENT_SECRET }}" >> build/libs/.env
-          echo "DEV_KAKAO_REDIRECT_URI=${{ secrets.DEV_KAKAO_REDIRECT_URI }}" >> build/libs/.env
-
-      # 3️⃣ JAR 확인
-      - name: Check JAR
-        run: ls -l build/libs/
+          echo "DEV_DB_HOST=${{ secrets.DEV_DB_HOST }}" >> .env
+          echo "DEV_DB_PORT=${{ secrets.DEV_DB_PORT }}" >> .env
+          echo "DEV_DB_NAME=${{ secrets.DEV_DB_NAME }}" >> .env
+          echo "DEV_DB_USER=${{ secrets.DEV_DB_USER }}" >> .env
+          echo "DEV_DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }}" >> .env
+          echo "DEV_JWT_SECRET=${{ secrets.DEV_JWT_SECRET }}" >> .env
+          echo "DEV_KAKAO_CLIENT_ID=${{ secrets.DEV_KAKAO_CLIENT_ID }}" >> .env
+          echo "DEV_KAKAO_CLIENT_SECRET=${{ secrets.DEV_KAKAO_CLIENT_SECRET }}" >> .env
+          echo "DEV_KAKAO_REDIRECT_URI=${{ secrets.DEV_KAKAO_REDIRECT_URI }}" >> .env
 
       # 4️⃣ EC2로 JAR + .env 전송
       - name: Deploy to EC2
@@ -47,10 +44,12 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
           port: 22
-          source: build/libs/*
+          source: |
+            build/libs/*.jar
+            .env
           target: /home/ubuntu/backend/
 
-      # 5️⃣ 백엔드 서비스 재시작
+      # 5️⃣ systemd 서비스 재시작
       - name: Restart backend service
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -61,4 +60,4 @@ jobs:
           script: |
             sudo systemctl daemon-reload
             sudo systemctl restart backend.service
-            sudo systemctl status backend.service
+            sudo systemctl status backend.service --no-pager

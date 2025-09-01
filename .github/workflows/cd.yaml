@@ -12,15 +12,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ 코드 체크아웃 (서비스 파일이나 스크립트 필요 시)
+      # 코드 체크아웃 (서비스 파일이나 스크립트 필요 시)
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ JAR artifact 다운로드
+      # 1️⃣ 다운로드할 폴더 미리 생성
+      - name: Prepare folder for JAR
+        run: mkdir -p build/libs/
+
+      # 2️⃣ CI에서 업로드한 artifact 다운로드
       - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jar-${{ github.event.workflow_run.id }}  # run-id 기반 이름
+          path: ./build/libs/
+
+      # 3️⃣ 다운로드 확인
+      - name: Check downloaded JAR
         run: ls -l build/libs/
 
-      # 3️⃣ .env 파일 생성
+      # .env 파일 생성
       - name: Create .env file
         run: |
           echo "DEV_DB_HOST=${{ secrets.DEV_DB_HOST }}" >> .env
@@ -33,7 +44,7 @@ jobs:
           echo "DEV_KAKAO_CLIENT_SECRET=${{ secrets.DEV_KAKAO_CLIENT_SECRET }}" >> .env
           echo "DEV_KAKAO_REDIRECT_URI=${{ secrets.DEV_KAKAO_REDIRECT_URI }}" >> .env
 
-      # 4️⃣ EC2로 JAR + .env 전송
+      # EC2로 JAR + .env 전송
       - name: Deploy to EC2
         uses: appleboy/scp-action@v0.1.5
         with:
@@ -46,7 +57,7 @@ jobs:
             .env
           target: /home/ubuntu/backend/
 
-      # 5️⃣ systemd 서비스 재시작
+      # systemd 서비스 재시작
       - name: Restart backend service
         uses: appleboy/ssh-action@v0.1.7
         with:

@@ -2,15 +2,19 @@ name: CD
 
 on:
   workflow_run:
-    workflows: ["CI"]  # CI 워크플로우 이름
+    workflows: ["CI"]
     types:
-      - completed  # CI 완료 후 실행
+      - completed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 0️⃣ artifact 받을 디렉토리 생성
+      - name: Prepare build directory
+        run: mkdir -p build/libs/
+
       # 1️⃣ CI에서 빌드한 JAR 다운로드
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
@@ -18,18 +22,18 @@ jobs:
           name: backend-jar
           path: ./build/libs/
 
-      # 2️⃣ .env 파일 생성
+      # 2️⃣ .env 파일 생성 (JAR와 같은 디렉토리에)
       - name: Create .env file
         run: |
-          echo "DEV_DB_HOST=${{ secrets.DEV_DB_HOST }}" >> .env
-          echo "DEV_DB_PORT=${{ secrets.DEV_DB_PORT }}" >> .env
-          echo "DEV_DB_NAME=${{ secrets.DEV_DB_NAME }}" >> .env
-          echo "DEV_DB_USER=${{ secrets.DEV_DB_USER }}" >> .env
-          echo "DEV_DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }}" >> .env
-          echo "DEV_JWT_SECRET=${{ secrets.DEV_JWT_SECRET }}" >> .env
-          echo "DEV_KAKAO_CLIENT_ID=${{ secrets.DEV_KAKAO_CLIENT_ID }}" >> .env
-          echo "DEV_KAKAO_CLIENT_SECRET=${{ secrets.DEV_KAKAO_CLIENT_SECRET }}" >> .env
-          echo "DEV_KAKAO_REDIRECT_URI=${{ secrets.DEV_KAKAO_REDIRECT_URI }}" >> .env
+          echo "DEV_DB_HOST=${{ secrets.DEV_DB_HOST }}" >> build/libs/.env
+          echo "DEV_DB_PORT=${{ secrets.DEV_DB_PORT }}" >> build/libs/.env
+          echo "DEV_DB_NAME=${{ secrets.DEV_DB_NAME }}" >> build/libs/.env
+          echo "DEV_DB_USER=${{ secrets.DEV_DB_USER }}" >> build/libs/.env
+          echo "DEV_DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }}" >> build/libs/.env
+          echo "DEV_JWT_SECRET=${{ secrets.DEV_JWT_SECRET }}" >> build/libs/.env
+          echo "DEV_KAKAO_CLIENT_ID=${{ secrets.DEV_KAKAO_CLIENT_ID }}" >> build/libs/.env
+          echo "DEV_KAKAO_CLIENT_SECRET=${{ secrets.DEV_KAKAO_CLIENT_SECRET }}" >> build/libs/.env
+          echo "DEV_KAKAO_REDIRECT_URI=${{ secrets.DEV_KAKAO_REDIRECT_URI }}" >> build/libs/.env
 
       # 3️⃣ JAR 확인
       - name: Check JAR
@@ -43,9 +47,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
           port: 22
-          source: |
-            build/libs/*.jar
-            .env
+          source: build/libs/*
           target: /home/ubuntu/backend/
 
       # 5️⃣ 백엔드 서비스 재시작

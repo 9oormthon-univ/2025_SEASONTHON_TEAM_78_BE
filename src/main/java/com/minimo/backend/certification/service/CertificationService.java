@@ -33,6 +33,9 @@ public class CertificationService {
     private final UserRepository userRepository;
     private final CloudinaryImageService cloudinaryImageService;
 
+    private static final int MAX_TITLE_CODEPOINTS = 20;
+    private static final int MAX_CONTENT_CODEPOINTS = 300;
+
     @Transactional
     public CreateCertificationResponse create(Long userId, Long challengeId,
                                               CreateCertificationRequest request,
@@ -54,13 +57,14 @@ public class CertificationService {
             throw new BusinessException(ExceptionType.ALREADY_CERTIFIED_TODAY);
         }
 
+        validateTitle(request.getTitle());
+        validateContent(request.getContent());
+
         User user =  userRepository.findById(userId).orElseThrow(
                 () -> new BusinessException(ExceptionType.USER_NOT_FOUND));
 
         Challenge challenge = challengeRepository.findById(challengeId).orElseThrow(
                 () -> new BusinessException(ExceptionType.CHALLENGE_NOT_FOUND));
-
-
 
         // 사진 업로드
         Map data = this.cloudinaryImageService.upload(file);
@@ -137,9 +141,11 @@ public class CertificationService {
         // 인증 제목 및 내용 수정
         if (request != null) {
             if (request.getTitle() != null) {
+                validateTitle(request.getTitle());
                 cert.setTitle(request.getTitle());
             }
             if (request.getContent() != null) {
+                validateContent(request.getContent());
                 cert.setContent(request.getContent());
             }
         }
@@ -152,5 +158,25 @@ public class CertificationService {
                 .title(saved.getTitle())
                 .content(saved.getContent())
                 .build();
+    }
+
+    private void validateTitle(String title) {
+        if (title == null || title.isBlank()) {
+            throw new BusinessException(ExceptionType.CERTIFICATION_TITLE_REQUIRED);
+        }
+        int count = title.codePointCount(0, title.length());
+        if (count > MAX_TITLE_CODEPOINTS) {
+            throw new BusinessException(ExceptionType.CERTIFICATION_TITLE_TOO_LONG);
+        }
+    }
+
+    private void validateContent(String content) {
+        if (content == null || content.isBlank()) {
+            throw new BusinessException(ExceptionType.CERTIFICATION_CONTENT_REQUIRED);
+        }
+        int count = content.codePointCount(0, content.length());
+        if (count > MAX_CONTENT_CODEPOINTS) {
+            throw new BusinessException(ExceptionType.CERTIFICATION_CONTENT_TOO_LONG);
+        }
     }
 }

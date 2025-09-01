@@ -37,6 +37,10 @@ public enum ExceptionType {
     CERTIFICATION_NOT_FOUND(NOT_FOUND,"CE001", "해당 인증을 찾을 수 없습니다."),
     CERTIFICATION_FORBIDDEN(FORBIDDEN, "CE002", "해당 인증글을 수정할 권한이 없습니다."),
     ALREADY_CERTIFIED_TODAY(BAD_REQUEST,"CE003", "오늘은 이미 해당 챌린지에 인증을 완료했습니다."),
+    CERTIFICATION_TITLE_REQUIRED(BAD_REQUEST, "CE004", "인증 제목은 반드시 입력해야 합니다."),
+    CERTIFICATION_TITLE_TOO_LONG(BAD_REQUEST, "CE005", "인증 제목은 20자 이하로 입력해주세요."),
+    CERTIFICATION_CONTENT_REQUIRED(BAD_REQUEST, "CE006", "인증 내용은 반드시 입력해야 합니다."),
+    CERTIFICATION_CONTENT_TOO_LONG(BAD_REQUEST, "CE007", "인증 내용은 300자 이하로 입력해주세요."),
 
     // Image
     INVALID_IMAGE_FILE(BAD_REQUEST, "IMG001", "업로드할 이미지가 비어있거나 손상된 이미지입니다."),

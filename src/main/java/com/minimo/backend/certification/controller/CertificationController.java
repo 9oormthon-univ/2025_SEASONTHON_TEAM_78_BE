@@ -5,6 +5,7 @@ import com.minimo.backend.certification.dto.request.UpdateCertificationRequest;
 import com.minimo.backend.certification.dto.response.CreateCertificationResponse;
 import com.minimo.backend.certification.dto.response.UpdateCertificationResponse;
 import com.minimo.backend.certification.service.CertificationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,7 +24,7 @@ public class CertificationController {
             @AuthenticationPrincipal Long userId,
             @PathVariable Long challengeId,
             @RequestPart("image") MultipartFile file,
-            @RequestPart("request") CreateCertificationRequest request) {
+            @RequestPart("request") @Valid CreateCertificationRequest request) {
         CreateCertificationResponse response = certificationService.create(userId, challengeId, request,  file);
         System.out.println(userId + "님이 새로운 인증을 등록");
 
@@ -35,7 +36,7 @@ public class CertificationController {
             @AuthenticationPrincipal Long userId,
             @PathVariable Long certificationId,
             @RequestPart("image") MultipartFile file,
-            @RequestPart("request") UpdateCertificationRequest request) {
+            @RequestPart("request") @Valid UpdateCertificationRequest request) {
         UpdateCertificationResponse response = certificationService.updateCertification(userId, certificationId, request, file);
         return ResponseEntity.ok(response);
     }

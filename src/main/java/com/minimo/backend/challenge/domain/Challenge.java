@@ -1,6 +1,5 @@
 package com.minimo.backend.challenge.domain;
 
-import com.minimo.backend.global.base.BaseEntity;
 import com.minimo.backend.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

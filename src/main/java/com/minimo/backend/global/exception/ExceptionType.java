@@ -32,6 +32,10 @@ public enum ExceptionType {
 
     // Challenge
     CHALLENGE_NOT_FOUND(NOT_FOUND,"CH001", "존재하지 않는 챌린지입니다."),
+    CHALLENGE_TITLE_REQUIRED(BAD_REQUEST, "CH002", "챌린지 제목은 반드시 입력해야 합니다."),
+    CHALLENGE_TITLE_TOO_LONG(BAD_REQUEST, "CH003", "챌린지 제목은 20자 이하로 입력해주세요."),
+    CHALLENGE_CONTENT_REQUIRED(BAD_REQUEST, "CH004", "챌린지 내용은 반드시 입력해야 합니다."),
+    CHALLENGE_CONTENT_TOO_LONG(BAD_REQUEST, "CH005", "챌린지 내용은 300자 이하로 입력해주세요."),
 
     // Certification
     CERTIFICATION_NOT_FOUND(NOT_FOUND,"CE001", "해당 인증을 찾을 수 없습니다."),

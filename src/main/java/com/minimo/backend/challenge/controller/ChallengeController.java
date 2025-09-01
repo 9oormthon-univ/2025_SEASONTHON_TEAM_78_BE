@@ -7,6 +7,7 @@ import com.minimo.backend.challenge.dto.response.ChallengePendingResponse;
 import com.minimo.backend.challenge.dto.response.CreateChallengeResponse;
 import com.minimo.backend.challenge.service.ChallengeService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class ChallengeController {
     @PostMapping
     public ResponseEntity<CreateChallengeResponse> createChallenge(
             @AuthenticationPrincipal Long userId,
-            @RequestBody CreateChallengeRequest request) {
+            @Valid @RequestBody CreateChallengeRequest request) {
         CreateChallengeResponse response = challengeService.create(userId, request);
 
         return ResponseEntity.ok(response);

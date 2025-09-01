@@ -17,6 +17,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.*;
 import java.time.temporal.ChronoUnit;
@@ -25,7 +26,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,8 +39,10 @@ public class ChallengeService {
     public CreateChallengeResponse create(Long userId, CreateChallengeRequest request) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException(userId + "유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ExceptionType.USER_NOT_FOUND));
 
+        validateChallenge(request.getTitle(), request.getContent());
+        
         // 종료일 계산
         LocalDate startDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
         LocalDate endDate = startDate.plusDays(request.getDurationDays() - 1L);
@@ -63,11 +65,12 @@ public class ChallengeService {
     @Transactional
     public void delete(Long id) {
         Challenge challenge = challengeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException(id + " 게시물이 존재하지 않습니다."));
+                .orElseThrow(() -> new BusinessException(ExceptionType.CHALLENGE_NOT_FOUND));
 
         challengeRepository.delete(challenge);
     }
 
+    // 오늘 인증이 되지 않은 챌린지
     @Transactional
     public ChallengePendingListResponse findNotCertifiedToday(Long userId) {
 
@@ -76,6 +79,7 @@ public class ChallengeService {
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end = start.plusDays(1).minusNanos(1);
 
+        // 주간 캘린더 인증 기록 불러오기
         LocalDate startOfWeekDate = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
         LocalDate endOfWeekDate = startOfWeekDate.plusDays(6);
         LocalDateTime startOfWeek = startOfWeekDate.atStartOfDay();
@@ -258,6 +262,25 @@ public class ChallengeService {
         if (rate < 0) return 0;
         if (rate > 100) return 100;
         return rate;
+    }
+
+    // 챌린지 생성 입력 데이터 검증
+    private void validateChallenge(String rawTitle, String rawContent) {
+        String title = rawTitle == null ? null : rawTitle.trim();
+        String content = rawContent == null ? null : rawContent.trim();
+
+        if (!StringUtils.hasText(title)) {
+            throw new BusinessException(ExceptionType.CHALLENGE_TITLE_REQUIRED);
+        }
+        if (title.length() > 20) {
+            throw new BusinessException(ExceptionType.CHALLENGE_TITLE_TOO_LONG);
+        }
+        if (!StringUtils.hasText(content)) {
+            throw new BusinessException(ExceptionType.CHALLENGE_CONTENT_REQUIRED);
+        }
+        if (content.length() > 50) {
+            throw new BusinessException(ExceptionType.CHALLENGE_CONTENT_TOO_LONG);
+        }
     }
 
 }

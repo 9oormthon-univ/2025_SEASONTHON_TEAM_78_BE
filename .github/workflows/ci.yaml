@@ -60,5 +60,5 @@ jobs:
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
-          name: backend-${{ secrets.DEPLOY_KEY }}
           path: build/libs/*.jar
+          run-id: ${{ github.event.workflow_run.id }}

@@ -160,6 +160,7 @@ public class CertificationService {
                 .build();
     }
 
+    // 인증 게시물의 title 글자 수 검증
     private void validateTitle(String title) {
         if (title == null || title.isBlank()) {
             throw new BusinessException(ExceptionType.CERTIFICATION_TITLE_REQUIRED);
@@ -170,6 +171,7 @@ public class CertificationService {
         }
     }
 
+    // 인증 게시물의 content 글자 수 검증
     private void validateContent(String content) {
         if (content == null || content.isBlank()) {
             throw new BusinessException(ExceptionType.CERTIFICATION_CONTENT_REQUIRED);

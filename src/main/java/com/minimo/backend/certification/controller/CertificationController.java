@@ -26,7 +26,6 @@ public class CertificationController {
             @RequestPart("image") MultipartFile file,
             @RequestPart("request") @Valid CreateCertificationRequest request) {
         CreateCertificationResponse response = certificationService.create(userId, challengeId, request,  file);
-        System.out.println(userId + "님이 새로운 인증을 등록");
 
         return ResponseEntity.ok(response);
     }
@@ -38,6 +37,7 @@ public class CertificationController {
             @RequestPart("image") MultipartFile file,
             @RequestPart("request") @Valid UpdateCertificationRequest request) {
         UpdateCertificationResponse response = certificationService.updateCertification(userId, certificationId, request, file);
+
         return ResponseEntity.ok(response);
     }
 }

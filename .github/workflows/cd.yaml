@@ -13,7 +13,7 @@ jobs:
     steps:
       # 1️⃣ 아티팩트 다운로드 (CI에서 빌드한 JAR)
       - name: Download JAR artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: backend-jar       # CI에서 업로드한 artifact 이름
           path: ./build/libs/     # 다운로드 위치

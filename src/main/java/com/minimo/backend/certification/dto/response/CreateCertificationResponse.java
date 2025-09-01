@@ -16,6 +16,7 @@ public class CreateCertificationResponse {
     private String imageUrl;
     private String title;
     private String content;
+    private String imageId;
 
     public CreateCertificationResponse(Certification certification) {
         this.id = certification.getId();
@@ -24,5 +25,6 @@ public class CreateCertificationResponse {
         this.title = certification.getTitle();
         this.content = certification.getContent();
         this.imageUrl = certification.getImageUrl();
+        this.imageId = certification.getImageId();
     }
 }

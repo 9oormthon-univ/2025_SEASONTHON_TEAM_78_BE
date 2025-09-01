@@ -1,17 +1,15 @@
 package com.minimo.backend.certification.controller;
 
 import com.minimo.backend.certification.dto.request.CreateCertificationRequest;
+import com.minimo.backend.certification.dto.request.UpdateCertificationRequest;
 import com.minimo.backend.certification.dto.response.CreateCertificationResponse;
+import com.minimo.backend.certification.dto.response.UpdateCertificationResponse;
 import com.minimo.backend.certification.service.CertificationService;
-import com.minimo.backend.global.config.cloudinary.CloudinaryImageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/certifications")
@@ -20,7 +18,7 @@ public class CertificationController {
 
     private final CertificationService certificationService;
 
-    @PostMapping("/{challengeId}")
+    @PostMapping("/challenges/{challengeId}")
     public ResponseEntity<CreateCertificationResponse> createCertification(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long challengeId,
@@ -29,6 +27,16 @@ public class CertificationController {
         CreateCertificationResponse response = certificationService.create(userId, challengeId, request,  file);
         System.out.println(userId + "님이 새로운 인증을 등록");
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{certificationId}")
+    public ResponseEntity<UpdateCertificationResponse> updateCertification(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long certificationId,
+            @RequestPart("image") MultipartFile file,
+            @RequestPart("request") UpdateCertificationRequest request) {
+        UpdateCertificationResponse response = certificationService.updateCertification(userId, certificationId, request, file);
         return ResponseEntity.ok(response);
     }
 }

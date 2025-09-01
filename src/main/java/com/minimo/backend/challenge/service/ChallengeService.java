@@ -1,11 +1,15 @@
 package com.minimo.backend.challenge.service;
 
+import com.minimo.backend.certification.domain.Certification;
 import com.minimo.backend.certification.repository.CertificationRepository;
 import com.minimo.backend.challenge.domain.Challenge;
 import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
+import com.minimo.backend.challenge.dto.response.ChallengeDetailResponse;
 import com.minimo.backend.challenge.dto.response.ChallengePendingResponse;
 import com.minimo.backend.challenge.dto.response.CreateChallengeResponse;
 import com.minimo.backend.challenge.repository.ChallengeRepository;
+import com.minimo.backend.global.exception.BusinessException;
+import com.minimo.backend.global.exception.ExceptionType;
 import com.minimo.backend.user.domain.User;
 import com.minimo.backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -13,11 +17,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -117,6 +123,51 @@ public class ChallengeService {
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ChallengeDetailResponse getDetail(Long userId, Long challengeId) {
+        Challenge challenge = challengeRepository.findById(challengeId)
+                .orElseThrow(() -> new BusinessException(ExceptionType.CHALLENGE_NOT_FOUND));
+
+        // 남은 기간: 종료일 - 오늘 (음수면 0)
+        LocalDate today = LocalDate.now();
+        LocalDate endDate = challenge.getEndDate(); // Challenge 엔티티에 endDate(LocalDate) 존재한다고 가정
+        long remainingDays = 0;
+        if (endDate != null) {
+            long diff = ChronoUnit.DAYS.between(today, endDate);
+            remainingDays = Math.max(0, diff); // “종료날짜 - 오늘날짜” 그대로 적용
+        }
+
+        // 달성률: (내 인증 수 / durationDays) * 100 → 소수점 버림
+        Integer durationDays = challenge.getDurationDays(); // Challenge에 durationDays 존재한다고 가정
+        long myCertCount = certificationRepository.countByChallenge_IdAndUser_Id(challengeId, userId);
+        int achievementRate = 0;
+        if (durationDays != null && durationDays > 0) {
+            achievementRate = (int) ((myCertCount * 100.0) / durationDays);
+        }
+
+        // 내 인증 목록
+        List<Certification> myCerts = certificationRepository
+                .findByChallenge_IdAndUser_IdOrderByCreatedAtDesc(challengeId, userId);
+
+        List<ChallengeDetailResponse.CertificationSummary> certSummaries = myCerts.stream()
+                .map(c -> ChallengeDetailResponse.CertificationSummary.builder()
+                        .imageUrl(c.getImageUrl())
+                        .title(c.getTitle())
+                        .content(c.getContent())
+                        .createdAt(c.getCreatedAt().toLocalDate())
+                        .build())
+                .toList();
+
+        return ChallengeDetailResponse.builder()
+                .title(challenge.getTitle())
+                .content(challenge.getContent())
+                .challengeIcon(challenge.getChallengeIcon()) // 문자열 아이콘 필드 가정
+                .remainingDays(remainingDays)
+                .achievementRate(achievementRate)
+                .certifications(certSummaries)
+                .build();
     }
 
     private int computeTotalDays(Challenge ch) {

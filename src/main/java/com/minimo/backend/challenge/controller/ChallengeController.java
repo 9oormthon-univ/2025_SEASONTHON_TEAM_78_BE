@@ -1,6 +1,7 @@
 package com.minimo.backend.challenge.controller;
 
 import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
+import com.minimo.backend.challenge.dto.response.ChallengeDetailResponse;
 import com.minimo.backend.challenge.dto.response.ChallengePendingResponse;
 import com.minimo.backend.challenge.dto.response.CreateChallengeResponse;
 import com.minimo.backend.challenge.service.ChallengeService;
@@ -53,6 +54,15 @@ public class ChallengeController {
     public ResponseEntity<List<ChallengePendingResponse>> getCertified(@AuthenticationPrincipal Long userId) {
         List<ChallengePendingResponse> response = challengeService.findCertifiedToday(userId);
 
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{challengeId}")
+    public ResponseEntity<ChallengeDetailResponse> getDetail(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long challengeId
+    ) {
+        ChallengeDetailResponse response = challengeService.getDetail(userId, challengeId);
         return ResponseEntity.ok(response);
     }
 }

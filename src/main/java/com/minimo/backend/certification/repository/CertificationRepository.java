@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface CertificationRepository extends JpaRepository<Certification, Long> {
     boolean existsByChallenge_IdAndUser_IdAndCreatedAtBetween(
@@ -15,4 +16,7 @@ public interface CertificationRepository extends JpaRepository<Certification, Lo
     );
 
     long countByChallenge_IdAndUser_Id(Long challengeId, Long userId);
+
+    List<Certification> findByChallenge_IdAndUser_IdOrderByCreatedAtDesc(Long challengeId, Long userId);
+
 }

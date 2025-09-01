@@ -1,31 +1,22 @@
 package com.minimo.backend.certification.service;
 
-import com.cloudinary.Cloudinary;
 import com.minimo.backend.certification.domain.Certification;
 import com.minimo.backend.certification.dto.request.CreateCertificationRequest;
 import com.minimo.backend.certification.dto.response.CreateCertificationResponse;
 import com.minimo.backend.certification.repository.CertificationRepository;
 import com.minimo.backend.challenge.domain.Challenge;
 import com.minimo.backend.challenge.repository.ChallengeRepository;
-import com.minimo.backend.global.config.cloudinary.CloudinaryImageService;
-import com.minimo.backend.global.config.cloudinary.ImageStorageService;
 import com.minimo.backend.global.exception.BusinessException;
 import com.minimo.backend.global.exception.ExceptionType;
 import com.minimo.backend.user.domain.User;
 import com.minimo.backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.awt.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor

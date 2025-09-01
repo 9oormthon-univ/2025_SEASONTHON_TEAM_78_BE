@@ -36,6 +36,9 @@ public enum ExceptionType {
     // Certification
     ALREADY_CERTIFIED_TODAY(BAD_REQUEST,"CE001", "이미 오늘은 해당 챌린지에 인증을 완료했습니다."),
 
+    // Image
+    IMAGE_UPLOAD_FAILED(INTERNAL_SERVER_ERROR, "I001", "이미지 업로드에 실패하였습니다."),
+
     ;
 
     private final HttpStatus status;

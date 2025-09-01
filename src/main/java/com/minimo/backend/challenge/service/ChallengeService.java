@@ -202,6 +202,16 @@ public class ChallengeService {
         if (durationDays != null && durationDays > 0) {
             achievementRate = (int) ((myCertCount * 100.0) / durationDays);
         }
+        ZoneId zoneId = ZoneId.of("Asia/Seoul");
+
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        boolean certifiedToday = certificationRepository.existsByChallenge_IdAndUser_IdAndCreatedAtBetween(
+                challengeId, userId, startOfDay, endOfDay
+        );
+
+        String status = certifiedToday ? "certified" : "not_certified";
 
         // 내 인증 목록
         List<Certification> myCerts = certificationRepository
@@ -223,6 +233,7 @@ public class ChallengeService {
                 .remainingDays(remainingDays)
                 .achievementRate(achievementRate)
                 .certifications(certSummaries)
+                .status(status)
                 .build();
     }
 

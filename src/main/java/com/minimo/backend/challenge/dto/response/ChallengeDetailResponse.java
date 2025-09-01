@@ -16,6 +16,7 @@ public class ChallengeDetailResponse {
     private String challengeIcon;
     private long remainingDays;
     private int achievementRate;
+    private String status;
 
     private List<CertificationSummary> certifications;
 

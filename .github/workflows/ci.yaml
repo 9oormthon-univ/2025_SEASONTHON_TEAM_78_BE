@@ -61,5 +61,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: build/libs/*.jar
-          name: minimo-backend-jar
           run-id: ${{ github.event.workflow_run.id }}

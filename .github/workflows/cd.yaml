@@ -20,7 +20,7 @@ jobs:
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
         with:
-          name: backend-jar       # CI에서 업로드한 artifact 이름
+          name: backend-${{ secrets.DEPLOY_KEY }}      # CI에서 업로드한 artifact 이름
           path: ./build/libs/     # 임시 경로
 
       # 3️⃣ .env 파일 생성

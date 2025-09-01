@@ -8,6 +8,7 @@ import lombok.*;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -22,12 +23,12 @@ public class Certification extends BaseEntity {
     @JoinColumn(name = "challenge_id")
     private Challenge challenge;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "user_id")
+//    private User user;
 
-    @Column(length = 1024)
-    private String imageUrl;
+//    @Column
+//    private String imageUrl;
 
     private String title;
     private String content;

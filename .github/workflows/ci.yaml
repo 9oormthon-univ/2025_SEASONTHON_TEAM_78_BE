@@ -9,8 +9,8 @@ on:
       - main  # main 브랜치로 PR 생성 시 실행
 
 jobs:
-  build:
-    runs-on: ubuntu-latest  # CI 작업이 실행될 환경 (Ubuntu 최신 버전)
+  build-test:
+    runs-on: ubuntu-latest
 
     steps:
       # 1️⃣ 코드 저장소 체크아웃
@@ -24,7 +24,7 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      # 3️⃣ .env 파일 생성
+      # 3️⃣ .env 파일 생성 (테스트용으로 CI에서만 필요할 경우)
       - name: Create .env file
         run: |
           echo "DEV_DB_HOST=${{ secrets.DEV_DB_HOST }}" >> .env
@@ -37,7 +37,7 @@ jobs:
           echo "DEV_KAKAO_CLIENT_SECRET=${{ secrets.DEV_KAKAO_CLIENT_SECRET }}" >> .env
           echo "DEV_KAKAO_REDIRECT_URI=${{ secrets.DEV_KAKAO_REDIRECT_URI }}" >> .env
 
-      # 4️⃣ Gradle 캐시 활용
+      # 4️⃣ Gradle 캐시
       - name: Cache Gradle packages
         uses: actions/cache@v3
         with:
@@ -48,7 +48,7 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      # 5️⃣ Gradle 빌드
+      # 5️⃣ Gradle 빌드 (테스트 포함)
       - name: Build with Gradle
         run: ./gradlew clean build --no-daemon
 
@@ -56,9 +56,9 @@ jobs:
       - name: Run tests
         run: ./gradlew test --no-daemon
 
-      # 7️⃣ 빌드 결과 JAR 파일을 아티팩트로 업로드
+      # 7️⃣ artifact 업로드 (CD에서 다운로드용)
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
-          name: backend-jar  # 아티팩트 이름
-          path: build/libs/*.jar  # 업로드할 파일 위치
+          name: backend-jar
+          path: build/libs/*.jar

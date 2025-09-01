@@ -31,7 +31,7 @@ public class CertificationController {
             @AuthenticationPrincipal Long userId,
             @PathVariable Long challengeId,
             @RequestBody CreateCertificationRequest request) {
-        CreateCertificationResponse response = certificationService.create(challengeId, request);
+        CreateCertificationResponse response = certificationService.create(userId, challengeId, request);
         System.out.println(userId + "님이 새로운 인증을 등록");
 
         return ResponseEntity.ok(response);

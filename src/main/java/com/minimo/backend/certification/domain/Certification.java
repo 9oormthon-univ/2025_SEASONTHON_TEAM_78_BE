@@ -23,9 +23,9 @@ public class Certification extends BaseEntity {
     @JoinColumn(name = "challenge_id")
     private Challenge challenge;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "user_id")
-//    private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
 //    @Column
 //    private String imageUrl;

@@ -11,21 +11,16 @@ jobs:
     runs-on: ubuntu-latest  # 우분투 최신 환경에서 실행
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3  # 코드 저장소 복제
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3  # Java 21 설치
+      # 1️⃣ 아티팩트 다운로드 (CI에서 빌드한 JAR)
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v3
         with:
-          distribution: temurin  # Java 배포판 필수
-          java-version: 21       # 설치할 Java 버전
+          name: backend-jar       # CI에서 업로드한 artifact 이름
+          path: ./build/libs/     # 다운로드 위치
 
-      - name: Build with Gradle
-        run: ./gradlew clean build -x test  # JAR 빌드 (테스트 제외)
-
+      # 2️⃣ .env 파일 생성
       - name: Create .env file
         run: |
-          # GitHub Secrets에서 환경변수 가져와 .env 파일 생성
           echo "DEV_DB_HOST=${{ secrets.DEV_DB_HOST }}" >> .env
           echo "DEV_DB_PORT=${{ secrets.DEV_DB_PORT }}" >> .env
           echo "DEV_DB_NAME=${{ secrets.DEV_DB_NAME }}" >> .env
@@ -36,11 +31,13 @@ jobs:
           echo "DEV_KAKAO_CLIENT_SECRET=${{ secrets.DEV_KAKAO_CLIENT_SECRET }}" >> .env
           echo "DEV_KAKAO_REDIRECT_URI=${{ secrets.DEV_KAKAO_REDIRECT_URI }}" >> .env
 
+      # 3️⃣ JAR 확인 (옵션)
       - name: Check JAR
-        run: ls -l build/libs/  # JAR 파일 확인
+        run: ls -l build/libs/
 
+      # 4️⃣ EC2로 JAR + .env 전송
       - name: Deploy to EC2
-        uses: appleboy/scp-action@v0.1.5  # EC2로 JAR, .env 전송
+        uses: appleboy/scp-action@v0.1.5
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
@@ -51,14 +48,15 @@ jobs:
             .env
           target: /home/ubuntu/backend/
 
+      # 5️⃣ 백엔드 서비스 재시작
       - name: Restart backend service
-        uses: appleboy/ssh-action@v0.1.7  # EC2에서 서비스 재시작
+        uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            sudo systemctl daemon-reload       # systemd 적용
-            sudo systemctl restart backend.service  # 서비스 재시작
-            sudo systemctl status backend.service   # 상태 확인
+            sudo systemctl daemon-reload
+            sudo systemctl restart backend.service
+            sudo systemctl status backend.service

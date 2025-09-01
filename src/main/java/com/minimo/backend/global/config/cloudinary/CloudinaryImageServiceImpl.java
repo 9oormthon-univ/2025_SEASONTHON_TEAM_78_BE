@@ -2,6 +2,8 @@ package com.minimo.backend.global.config.cloudinary;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.minimo.backend.global.exception.BusinessException;
+import com.minimo.backend.global.exception.ExceptionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,8 +24,7 @@ public class CloudinaryImageServiceImpl implements CloudinaryImageService {
             Map data = this.cloudinary.uploader().upload(file.getBytes(), Map.of());
             return data;
         } catch (IOException e) {
-            System.out.println("Image uploading fail!");
-            throw new RuntimeException("Image uploading fail!");
+            throw new BusinessException(ExceptionType.IMAGE_UPLOAD_FAILED);
         }
     }
 
@@ -32,7 +33,7 @@ public class CloudinaryImageServiceImpl implements CloudinaryImageService {
         try {
             cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
         } catch (IOException e) {
-            throw new RuntimeException("이미지 삭제 실패", e);
+            throw new BusinessException(ExceptionType.IMAGE_DELETE_FAILED);
         }
     }
 }

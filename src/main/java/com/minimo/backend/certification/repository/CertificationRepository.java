@@ -13,4 +13,6 @@ public interface CertificationRepository extends JpaRepository<Certification, Lo
             LocalDateTime start,
             LocalDateTime end
     );
+
+    long countByChallenge_IdAndUser_Id(Long challengeId, Long userId);
 }

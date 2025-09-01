@@ -1,6 +1,7 @@
 package com.minimo.backend.challenge.controller;
 
 import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
+import com.minimo.backend.challenge.dto.response.ChallengePendingResponse;
 import com.minimo.backend.challenge.dto.response.CreateChallengeResponse;
 import com.minimo.backend.challenge.service.ChallengeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/challenges")
@@ -37,5 +40,19 @@ public class ChallengeController {
         challengeService.delete(challengeId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/not-certified")
+    public ResponseEntity<List<ChallengePendingResponse>> getNotCertified(@AuthenticationPrincipal Long userId) {
+        List<ChallengePendingResponse> response = challengeService.findNotCertifiedToday(userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/certified")
+    public ResponseEntity<List<ChallengePendingResponse>> getCertified(@AuthenticationPrincipal Long userId) {
+        List<ChallengePendingResponse> response = challengeService.findCertifiedToday(userId);
+
+        return ResponseEntity.ok(response);
     }
 }

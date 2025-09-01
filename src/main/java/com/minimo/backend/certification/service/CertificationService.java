@@ -6,6 +6,7 @@ import com.minimo.backend.certification.dto.response.CreateCertificationResponse
 import com.minimo.backend.certification.repository.CertificationRepository;
 import com.minimo.backend.challenge.domain.Challenge;
 import com.minimo.backend.challenge.repository.ChallengeRepository;
+import com.minimo.backend.global.config.cloudinary.CloudinaryImageService;
 import com.minimo.backend.global.exception.BusinessException;
 import com.minimo.backend.global.exception.ExceptionType;
 import com.minimo.backend.user.domain.User;
@@ -13,10 +14,12 @@ import com.minimo.backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -25,11 +28,12 @@ public class CertificationService {
     private final ChallengeRepository challengeRepository;
     private final CertificationRepository certificationRepository;
     private final UserRepository userRepository;
+    private final CloudinaryImageService cloudinaryImageService;
 
     @Transactional
     public CreateCertificationResponse create(Long userId, Long challengeId,
                                               CreateCertificationRequest request,
-                                              String imageUrl) {
+                                              MultipartFile file) {
 
         ZoneId zone = ZoneId.of("Asia/Seoul");
         LocalDateTime startOfToday = LocalDate.now(zone).atStartOfDay();
@@ -51,6 +55,9 @@ public class CertificationService {
 
         Challenge challenge = challengeRepository.findById(challengeId).orElseThrow(
                 () -> new BusinessException(ExceptionType.CHALLENGE_NOT_FOUND));
+
+        Map data = this.cloudinaryImageService.upload(file);
+        String imageUrl = data.get("secure_url").toString();
 
         Certification certification = Certification.builder()
                 .challenge(challenge)

@@ -19,19 +19,14 @@ import java.util.Map;
 public class CertificationController {
 
     private final CertificationService certificationService;
-    private final CloudinaryImageService cloudinaryImageService;
 
     @PostMapping("/{challengeId}")
     public ResponseEntity<CreateCertificationResponse> createCertification(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long challengeId,
             @RequestPart("image") MultipartFile file,
-            @RequestPart("request") CreateCertificationRequest request){
-
-        Map data = this.cloudinaryImageService.upload(file);
-        String imageUrl = data.get("secure_url").toString();
-
-        CreateCertificationResponse response = certificationService.create(userId, challengeId, request, imageUrl);
+            @RequestPart("request") CreateCertificationRequest request) {
+        CreateCertificationResponse response = certificationService.create(userId, challengeId, request,  file);
         System.out.println(userId + "님이 새로운 인증을 등록");
 
         return ResponseEntity.ok(response);

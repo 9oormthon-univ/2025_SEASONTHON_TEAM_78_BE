@@ -3,18 +3,14 @@ package com.minimo.backend.challenge.controller;
 import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
 import com.minimo.backend.challenge.dto.response.ChallengeDetailResponse;
 import com.minimo.backend.challenge.dto.response.ChallengePendingListResponse;
-import com.minimo.backend.challenge.dto.response.ChallengePendingResponse;
 import com.minimo.backend.challenge.dto.response.CreateChallengeResponse;
 import com.minimo.backend.challenge.service.ChallengeService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/challenges")

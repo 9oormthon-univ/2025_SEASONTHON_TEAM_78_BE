@@ -2,8 +2,6 @@ package com.minimo.backend.global.config.cloudinary;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.minimo.backend.global.exception.BusinessException;
-import com.minimo.backend.global.exception.ExceptionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

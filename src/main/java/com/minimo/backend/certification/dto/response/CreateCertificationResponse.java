@@ -3,8 +3,6 @@ package com.minimo.backend.certification.dto.response;
 import com.minimo.backend.certification.domain.Certification;
 import com.minimo.backend.challenge.domain.Challenge;
 import com.minimo.backend.user.domain.User;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 
 @Getter

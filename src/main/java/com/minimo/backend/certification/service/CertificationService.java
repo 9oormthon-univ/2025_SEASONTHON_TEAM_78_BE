@@ -15,10 +15,8 @@ import com.minimo.backend.user.domain.User;
 import com.minimo.backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,13 +42,14 @@ public class CertificationService {
         LocalDateTime startOfToday = LocalDate.now(zone).atStartOfDay();
         LocalDateTime startOfTomorrow = startOfToday.plusDays(1);
 
+        // 챌린지 인증 검증
         boolean exists = certificationRepository.existsByChallenge_IdAndUser_IdAndCreatedAtBetween(
                 challengeId,
                 userId,
                 startOfToday,
-                startOfTomorrow
+                startOfTomorrow.minusNanos(1)
         );
-
+        // 이미 오늘 인증한 경우
         if (exists) {
             throw new BusinessException(ExceptionType.ALREADY_CERTIFIED_TODAY);
         }
@@ -61,8 +60,14 @@ public class CertificationService {
         Challenge challenge = challengeRepository.findById(challengeId).orElseThrow(
                 () -> new BusinessException(ExceptionType.CHALLENGE_NOT_FOUND));
 
+
+
+        // 사진 업로드
         Map data = this.cloudinaryImageService.upload(file);
         String imageUrl = data.get("secure_url").toString();
+        if (imageUrl == null || imageUrl.isBlank()) {
+            throw new BusinessException(ExceptionType.IMAGE_UPLOAD_URL_EMPTY);
+        }
         String imageId = data.get("public_id").toString();
 
         Certification certification = Certification.builder()
@@ -87,42 +92,49 @@ public class CertificationService {
             MultipartFile newImage
     ) {
         Certification cert = certificationRepository.findById(certificationId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "인증글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ExceptionType.CERTIFICATION_NOT_FOUND));
 
-        // 작성자 본인만 수정 가능
+        // 작성자 검증
         if (cert.getUser() == null || cert.getUser().getId() == null || !cert.getUser().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 인증글을 수정할 권한이 없습니다.");
+            throw new BusinessException(ExceptionType.CERTIFICATION_FORBIDDEN);
         }
 
-        // 1) 이미지 변경: 새 이미지가 들어오면
+        String oldUrl = cert.getImageUrl();
+
+        // 이미지 수정
         if (newImage != null && !newImage.isEmpty()) {
-            // (1) 기존 이미지 삭제 시도 (실패해도 신규 업로드는 진행)
-            String oldUrl = cert.getImageUrl();
+            // 기존 이미지 삭제
             if (oldUrl != null && !oldUrl.isBlank()) {
                 try {
-                    // 구현체에 deleteByUrl(String url) 메서드가 있다고 가정
                     cloudinaryImageService.delete(cert.getImageId());
                 } catch (Exception e) {
                     System.out.println("삭제 실패");
                 }
             }
 
-            // (2) 새 이미지 업로드
+            // 신규 이미지 업로드
             try {
                 Map<?, ?> uploaded = cloudinaryImageService.upload(newImage);
-                // Cloudinary는 보통 "secure_url" 또는 "url" 키를 가짐
+
                 String newUrl = Optional.ofNullable((String) uploaded.get("secure_url"))
                         .orElse((String) uploaded.get("url"));
+                String newPublicId = uploaded.get("public_id").toString();
                 if (newUrl == null || newUrl.isBlank()) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미지 업로드 실패: URL이 비어있습니다.");
+                    throw new BusinessException(ExceptionType.IMAGE_UPLOAD_URL_EMPTY);
                 }
+                if (newPublicId == null || newPublicId.isBlank()) {
+                    throw new BusinessException(ExceptionType.IMAGE_UPLOAD_FAILED);
+                }
+
+                // 신규 이미지 정보 저장
                 cert.setImageUrl(newUrl);
+                cert.setImageId(newPublicId);
             } catch (Exception e) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미지 업로드 중 오류가 발생했습니다.");
+                throw new BusinessException(ExceptionType.IMAGE_UPLOAD_FAILED);
             }
         }
 
-        // 2) 텍스트 부분 수정 (null이면 유지, ""이면 빈 값으로 반영)
+        // 인증 제목 및 내용 수정
         if (request != null) {
             if (request.getTitle() != null) {
                 cert.setTitle(request.getTitle());
@@ -132,7 +144,6 @@ public class CertificationService {
             }
         }
 
-        // 저장
         Certification saved = certificationRepository.save(cert);
 
         return UpdateCertificationResponse.builder()

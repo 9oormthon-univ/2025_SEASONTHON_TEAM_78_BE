@@ -27,7 +27,9 @@ public class CertificationService {
     private final UserRepository userRepository;
 
     @Transactional
-    public CreateCertificationResponse create(Long userId, Long challengeId, CreateCertificationRequest request) {
+    public CreateCertificationResponse create(Long userId, Long challengeId,
+                                              CreateCertificationRequest request,
+                                              String imageUrl) {
 
         ZoneId zone = ZoneId.of("Asia/Seoul");
         LocalDateTime startOfToday = LocalDate.now(zone).atStartOfDay();
@@ -55,6 +57,7 @@ public class CertificationService {
                 .user(user)
                 .title(request.getTitle())
                 .content(request.getContent())
+                .imageUrl(imageUrl)
                 .build();
 
         Certification savedCertification = certificationRepository.save(certification);

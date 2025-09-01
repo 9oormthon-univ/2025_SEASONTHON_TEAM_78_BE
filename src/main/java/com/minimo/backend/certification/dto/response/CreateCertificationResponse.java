@@ -13,7 +13,7 @@ public class CreateCertificationResponse {
     private Long id;
     private Challenge challenge;
     private User user;
-    // private String imageUrl;
+    private String imageUrl;
     private String title;
     private String content;
 
@@ -23,5 +23,6 @@ public class CreateCertificationResponse {
         this.user = certification.getUser();
         this.title = certification.getTitle();
         this.content = certification.getContent();
+        this.imageUrl = certification.getImageUrl();
     }
 }

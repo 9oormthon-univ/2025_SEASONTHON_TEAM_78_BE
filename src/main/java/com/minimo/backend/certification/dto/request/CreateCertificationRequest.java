@@ -12,5 +12,4 @@ public class CreateCertificationRequest {
 
     private String title;
     private String content;
-    // private MultipartFile file;
 }

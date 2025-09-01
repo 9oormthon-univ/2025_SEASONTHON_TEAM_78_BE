@@ -27,8 +27,8 @@ public class Certification extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-//    @Column
-//    private String imageUrl;
+    @Column
+    private String imageUrl;
 
     private String title;
     private String content;

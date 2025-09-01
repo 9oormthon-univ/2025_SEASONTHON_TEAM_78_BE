@@ -24,7 +24,7 @@ jobs:
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
         with:
-          name: backend-jar-${{ github.event.workflow_run.id }}  # run-id 기반 이름
+          run-id: ${{ github.event.workflow_run.id }}
           path: ./build/libs/
 
       # 3️⃣ 다운로드 확인

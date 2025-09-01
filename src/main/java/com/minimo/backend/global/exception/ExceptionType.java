@@ -30,6 +30,12 @@ public enum ExceptionType {
     // User
     USER_NOT_FOUND(NOT_FOUND, "U001","사용자가 존재하지 않습니다"),
 
+    // Challenge
+    CHALLENGE_NOT_FOUND(NOT_FOUND,"CH001", "존재하지 않는 챌린지입니다."),
+
+    // Certification
+    ALREADY_CERTIFIED_TODAY(BAD_REQUEST,"CE001", "이미 오늘은 해당 챌린지에 인증을 완료했습니다."),
+
     ;
 
     private final HttpStatus status;

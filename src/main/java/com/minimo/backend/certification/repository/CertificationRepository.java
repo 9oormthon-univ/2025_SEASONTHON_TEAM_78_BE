@@ -7,4 +7,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public interface CertificationRepository extends JpaRepository<Certification, Long> {
+    boolean existsByChallenge_IdAndUser_IdAndCreatedAtBetween(
+            Long challengeId,
+            Long userId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
 }

@@ -7,6 +7,7 @@ import com.minimo.backend.certification.dto.response.CreateCertificationResponse
 import com.minimo.backend.certification.dto.response.UpdateCertificationResponse;
 import com.minimo.backend.certification.repository.CertificationRepository;
 import com.minimo.backend.challenge.domain.Challenge;
+import com.minimo.backend.challenge.domain.ChallengeStatus;
 import com.minimo.backend.challenge.repository.ChallengeRepository;
 import com.minimo.backend.global.config.cloudinary.CloudinaryImageService;
 import com.minimo.backend.global.exception.BusinessException;
@@ -84,6 +85,14 @@ public class CertificationService {
                 .build();
 
         Certification savedCertification = certificationRepository.save(certification);
+
+        long count = certificationRepository.countByChallenge_IdAndUser_Id(challengeId, userId);
+
+        // 모든 날짜 인증 완료 시 챌린지 상태 변경
+        if (challenge.getStatus() != ChallengeStatus.COMPLETED
+                && count == challenge.getDurationDays()) {
+            challenge.complete();
+        }
 
         return new CreateCertificationResponse(savedCertification);
     }

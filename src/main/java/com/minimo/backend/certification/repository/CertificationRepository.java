@@ -29,7 +29,6 @@ public interface CertificationRepository extends JpaRepository<Certification, Lo
             Long userId, LocalDateTime start, LocalDateTime end
     );
 
-
     // 오늘 인증한 챌린지 id 모음
     @Query("""
         select distinct c.challenge.id

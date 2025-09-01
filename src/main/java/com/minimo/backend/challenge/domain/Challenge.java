@@ -53,4 +53,8 @@ public class Challenge {
             this.status = ChallengeStatus.ACTIVE;
         }
     }
+
+    public void complete() {
+        this.status = ChallengeStatus.COMPLETED;
+    }
 }

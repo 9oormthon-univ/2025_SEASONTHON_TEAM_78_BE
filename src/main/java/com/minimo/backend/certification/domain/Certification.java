@@ -30,6 +30,9 @@ public class Certification extends BaseEntity {
     private String imageUrl;
     private String imageId;
 
+    @Column(nullable = false, length = 20)
     private String title;
+
+    @Column(nullable = false, length = 300)
     private String content;
 }

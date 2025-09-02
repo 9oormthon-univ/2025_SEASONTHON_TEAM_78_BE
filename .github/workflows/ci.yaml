@@ -36,6 +36,9 @@ jobs:
           echo "DEV_KAKAO_CLIENT_ID=${{ secrets.DEV_KAKAO_CLIENT_ID }}" >> .env
           echo "DEV_KAKAO_CLIENT_SECRET=${{ secrets.DEV_KAKAO_CLIENT_SECRET }}" >> .env
           echo "DEV_KAKAO_REDIRECT_URI=${{ secrets.DEV_KAKAO_REDIRECT_URI }}" >> .env
+          echo "CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}" >> .env
+          echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> .env
+          echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> .env
 
       # 4️⃣ Gradle 캐시
       - name: Cache Gradle packages
@@ -50,7 +53,7 @@ jobs:
 
       # 5️⃣ Gradle 빌드 (테스트 포함)
       - name: Build with Gradle
-        run: ./gradlew clean build --no-daemon
+        run: ./gradlew clean build -x test --no-daemon
 
       # 6️⃣ 단위 테스트 실행
       - name: Run tests

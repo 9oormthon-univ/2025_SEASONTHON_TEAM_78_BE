@@ -37,8 +37,7 @@ jobs:
               git reset --hard
               git pull origin main
             else
-              git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/your-org/your-repo.git .
-            fi
+              git clone https://x-access-token:${{ secrets.DEPLOY_KEY }}@github.com:9oormthon-univ/2025_SEASONTHON_TEAM_78_BE.git
 
             # .env 생성
             echo "DEV_DB_HOST=${{ secrets.DEV_DB_HOST }}" > .env
@@ -50,6 +49,9 @@ jobs:
             echo "DEV_KAKAO_CLIENT_ID=${{ secrets.DEV_KAKAO_CLIENT_ID }}" >> .env
             echo "DEV_KAKAO_CLIENT_SECRET=${{ secrets.DEV_KAKAO_CLIENT_SECRET }}" >> .env
             echo "DEV_KAKAO_REDIRECT_URI=${{ secrets.DEV_KAKAO_REDIRECT_URI }}" >> .env
+            echo "CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}" >> .env
+            echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> .env
+            echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> .env
 
             # 기존 JAR 종료
             pkill -f 'backend-.*\.jar' || true

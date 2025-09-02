@@ -1,71 +1,67 @@
-name: CD
+name: Deploy to EC2
 
 on:
   workflow_run:
     workflows: ["CI"]  # CI 워크플로우 이름
     types:
-      - completed  # CI 완료 후 실행
+      - completed
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # CI 성공 시만 실행
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
-      # 코드 체크아웃 (서비스 파일이나 스크립트 필요 시)
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      # 1️⃣ 다운로드할 폴더 미리 생성
-      - name: Prepare folder for JAR
-        run: mkdir -p build/libs/
-
-      # 2️⃣ CI에서 업로드한 artifact 다운로드
-      - name: Download JAR artifact
-        uses: actions/download-artifact@v4
-        with:
-          path: build/libs/*.jar
-          name: minimo-build
-
-      # 3️⃣ 다운로드 확인
-      - name: Check downloaded JAR
-        run: ls -l build/libs/
-
-      # .env 파일 생성
-      - name: Create .env file
+      # 1️⃣ SSH 키 준비
+      - name: Setup SSH key
         run: |
-          echo "DEV_DB_HOST=${{ secrets.DEV_DB_HOST }}" >> .env
-          echo "DEV_DB_PORT=${{ secrets.DEV_DB_PORT }}" >> .env
-          echo "DEV_DB_NAME=${{ secrets.DEV_DB_NAME }}" >> .env
-          echo "DEV_DB_USER=${{ secrets.DEV_DB_USER }}" >> .env
-          echo "DEV_DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }}" >> .env
-          echo "DEV_JWT_SECRET=${{ secrets.DEV_JWT_SECRET }}" >> .env
-          echo "DEV_KAKAO_CLIENT_ID=${{ secrets.DEV_KAKAO_CLIENT_ID }}" >> .env
-          echo "DEV_KAKAO_CLIENT_SECRET=${{ secrets.DEV_KAKAO_CLIENT_SECRET }}" >> .env
-          echo "DEV_KAKAO_REDIRECT_URI=${{ secrets.DEV_KAKAO_REDIRECT_URI }}" >> .env
+          echo "${{ secrets.EC2_KEY }}" > key.pem
+          chmod 600 key.pem
 
-      # EC2로 JAR + .env 전송
-      - name: Deploy to EC2
-        uses: appleboy/scp-action@v0.1.5
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_KEY }}
-          port: 22
-          source: |
-            build/libs/*.jar
-            .env
-          target: /home/ubuntu/backend/
-
-      # systemd 서비스 재시작
-      - name: Restart backend service
+      # 2️⃣ EC2에서 배포 및 실행
+      - name: Deploy and run backend
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
-          key: ${{ secrets.EC2_KEY }}
+          key: key.pem
           port: 22
           script: |
-            sudo systemctl daemon-reload
-            sudo systemctl restart backend.service
-            sudo systemctl status backend.service --no-pager
+            set -e
+            # 작업 디렉토리로 이동 (없으면 생성)
+            mkdir -p ~/backend
+            cd ~/backend
+
+            # 기존 코드가 있으면 pull, 없으면 clone
+            if [ -d ".git" ]; then
+              git reset --hard
+              git pull origin main
+            else
+              git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/your-org/your-repo.git .
+            fi
+
+            # .env 생성
+            echo "DEV_DB_HOST=${{ secrets.DEV_DB_HOST }}" > .env
+            echo "DEV_DB_PORT=${{ secrets.DEV_DB_PORT }}" >> .env
+            echo "DEV_DB_NAME=${{ secrets.DEV_DB_NAME }}" >> .env
+            echo "DEV_DB_USER=${{ secrets.DEV_DB_USER }}" >> .env
+            echo "DEV_DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }}" >> .env
+            echo "DEV_JWT_SECRET=${{ secrets.DEV_JWT_SECRET }}" >> .env
+            echo "DEV_KAKAO_CLIENT_ID=${{ secrets.DEV_KAKAO_CLIENT_ID }}" >> .env
+            echo "DEV_KAKAO_CLIENT_SECRET=${{ secrets.DEV_KAKAO_CLIENT_SECRET }}" >> .env
+            echo "DEV_KAKAO_REDIRECT_URI=${{ secrets.DEV_KAKAO_REDIRECT_URI }}" >> .env
+
+            # 기존 JAR 종료
+            pkill -f 'backend-.*\.jar' || true
+
+            # Gradle 빌드
+            ./gradlew --no-daemon clean build -x test
+
+            # 새 JAR 백그라운드 실행
+            nohup java -jar build/libs/backend-0.0.1-SNAPSHOT.jar \
+                 --spring.profiles.active=dev \
+                 > app.log 2>&1 &
+
+            # 로그 확인
+            sleep 5
+            tail -n 20 app.log

@@ -121,7 +121,7 @@ public class CertificationService {
                 try {
                     cloudinaryImageService.delete(cert.getImageId());
                 } catch (Exception e) {
-                    System.out.println("삭제 실패");
+                    throw new BusinessException(ExceptionType.IMAGE_DELETE_FAILED);
                 }
             }
 

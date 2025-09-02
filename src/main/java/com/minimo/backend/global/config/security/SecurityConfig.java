@@ -5,7 +5,6 @@ import com.minimo.backend.global.oauth.handler.OAuth2AuthenticationSuccessHandle
 import com.minimo.backend.global.oauth.resolver.CustomAuthorizationRequestResolver;
 import com.minimo.backend.global.oauth.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,18 +35,14 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(CorsConfig.corsConfigurationSource()))
 
-                // H2 콘솔을 위한 헤더 설정 추가 (iframe 렌더링 허용)
-                .headers(headers -> headers
-                        .frameOptions(frameOptions -> frameOptions.sameOrigin())
-                );
+                // H2 콘솔 관련 제거 (iframe 설정 불필요)
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
 
         // HTTP 요청 권한 설정
         http.authorizeHttpRequests(authorize -> authorize
-                // H2 콘솔 경로는 인증 없이 모두 허용 (PathRequest 사용 권장)
-                .requestMatchers(PathRequest.toH2Console()).permitAll()
-                // Swagger UI 경로도 모두 허용
+                // Swagger UI 경로만 허용
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                // 그 외 모든 요청은 인증 필요
+                // 나머지 요청은 인증 필요
                 .anyRequest().authenticated()
         );
 

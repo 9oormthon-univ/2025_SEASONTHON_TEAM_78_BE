@@ -23,7 +23,7 @@ public class CertificationController {
     public ResponseEntity<CreateCertificationResponse> createCertification(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long challengeId,
-            @RequestPart("image") MultipartFile file,
+            @RequestPart(value = "image", required = false) MultipartFile file,
             @RequestPart("request") @Valid CreateCertificationRequest request) {
         CreateCertificationResponse response = certificationService.create(userId, challengeId, request,  file);
 

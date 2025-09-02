@@ -9,7 +9,7 @@ on:
       - main  # main 브랜치로 PR 생성 시 실행
 
 jobs:
-  build-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -64,4 +64,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: build/libs/*.jar
-          run-id: ${{ github.event.workflow_run.id }}
+          name: minimo-build

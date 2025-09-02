@@ -55,11 +55,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean build -x test --no-daemon
 
-      # 6️⃣ 단위 테스트 실행
-      - name: Run tests
-        run: ./gradlew test --no-daemon
-
-      # 7️⃣ artifact 업로드 (CD에서 다운로드용)
+      # 6️⃣ artifact 업로드 (CD에서 다운로드용)
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:

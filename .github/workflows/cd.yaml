@@ -33,12 +33,16 @@ jobs:
             cd ~/backend
 
             # 기존 코드가 있으면 pull, 없으면 clone
+            # GitHub known_hosts 추가 (SSH clone 시 필요)
+            mkdir -p ~/.ssh
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+      
             if [ -d ".git" ]; then
               git reset --hard
               git pull origin main
             else
-              git clone https://x-access-token:${{ secrets.DEPLOY_KEY }}@github.com:9oormthon-univ/2025_SEASONTHON_TEAM_78_BE.git
-
+              git clone git@github.com:9oormthon-univ/2025_SEASONTHON_TEAM_78_BE.git
+              
             # .env 생성
             echo "DEV_DB_HOST=${{ secrets.DEV_DB_HOST }}" > .env
             echo "DEV_DB_PORT=${{ secrets.DEV_DB_PORT }}" >> .env

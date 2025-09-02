@@ -24,8 +24,8 @@ jobs:
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
         with:
+          path: build/libs/*.jar
           name: minimo-build
-          path: ./build/libs/
 
       # 3️⃣ 다운로드 확인
       - name: Check downloaded JAR

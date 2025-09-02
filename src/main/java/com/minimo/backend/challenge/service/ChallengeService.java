@@ -1,0 +1,305 @@
+package com.minimo.backend.challenge.service;
+
+import com.minimo.backend.certification.domain.Certification;
+import com.minimo.backend.certification.repository.CertificationRepository;
+import com.minimo.backend.challenge.domain.Challenge;
+import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
+import com.minimo.backend.challenge.dto.response.ChallengeDetailResponse;
+import com.minimo.backend.challenge.dto.response.ChallengePendingListResponse;
+import com.minimo.backend.challenge.dto.response.ChallengePendingResponse;
+import com.minimo.backend.challenge.dto.response.CreateChallengeResponse;
+import com.minimo.backend.challenge.repository.ChallengeRepository;
+import com.minimo.backend.global.exception.BusinessException;
+import com.minimo.backend.global.exception.ExceptionType;
+import com.minimo.backend.user.domain.User;
+import com.minimo.backend.user.repository.UserRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import java.time.*;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class ChallengeService {
+
+    private final ChallengeRepository challengeRepository;
+    private final CertificationRepository certificationRepository;
+    private final UserRepository userRepository;
+
+    @Transactional
+    public CreateChallengeResponse create(Long userId, CreateChallengeRequest request) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ExceptionType.USER_NOT_FOUND));
+
+        validateChallenge(request.getTitle(), request.getContent());
+
+        // 종료일 계산
+        LocalDate startDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate endDate = startDate.plusDays(request.getDurationDays() - 1L);
+
+        Challenge challenge = Challenge.builder()
+                .user(user)
+                .title(request.getTitle())
+                .content(request.getContent())
+                .durationDays(request.getDurationDays())
+                .challengeIcon(request.getChallengeIcon())
+                .endDate(endDate)
+                .build();
+
+        Challenge savedChallenge = challengeRepository.save(challenge);
+
+        return new CreateChallengeResponse(savedChallenge);
+
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        Challenge challenge = challengeRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ExceptionType.CHALLENGE_NOT_FOUND));
+
+        challengeRepository.delete(challenge);
+    }
+
+    // 오늘 인증이 되지 않은 챌린지
+    @Transactional
+    public ChallengePendingListResponse findNotCertifiedToday(Long userId) {
+
+        ZoneId zoneId = ZoneId.of("Asia/Seoul");
+        LocalDate today = LocalDate.now(zoneId);
+        LocalDateTime start = today.atStartOfDay();
+        LocalDateTime end = start.plusDays(1);
+
+        // 주간 캘린더
+        LocalDate startOfWeekDate = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+        LocalDate endOfWeekDate = startOfWeekDate.plusDays(6);
+        LocalDateTime startOfWeek = startOfWeekDate.atStartOfDay();
+        LocalDateTime endOfWeek = endOfWeekDate.plusDays(1).atStartOfDay(); // [start, end) 일관성
+
+        // 주간 캘린더 기록 저장
+        Map<DayOfWeek, List<String>> weeklyIcons = buildWeeklyFirstThreeIcons(userId, startOfWeek, endOfWeek);
+
+        List<Challenge> myChallenges = challengeRepository.findAllByUser_Id(userId);
+
+        // 오늘 인증한 챌린지 ID
+        Set<Long> certifiedToday = certificationRepository.findCertifiedChallengeIdsToday(userId, start, end);
+
+        // 사용자별 챌린지 전체 인증 카운트
+        Map<Long, Long> countMap = certificationRepository.findCountsByUser(userId).stream()
+                .collect(Collectors.toMap(
+                        CertificationRepository.ChallengeCountProjection::getChallengeId,
+                        CertificationRepository.ChallengeCountProjection::getCnt
+                ));
+
+        // 미인증 챌린지 필터링 + 달성률 계산
+        List<ChallengePendingResponse> items = myChallenges.stream()
+                .filter(ch -> !certifiedToday.contains(ch.getId()))
+                .map(ch -> {
+                    int totalDays = computeTotalDays(ch); // 0 가능성 방어 필요
+                    long postedDays = countMap.getOrDefault(ch.getId(), 0L);
+                    int rate = computeAchievementRateSafe(postedDays, totalDays);
+
+                    return ChallengePendingResponse.builder()
+                            .id(ch.getId())
+                            .title(Optional.ofNullable(ch.getTitle()).orElse(""))
+                            .challengeIcon(Optional.ofNullable(ch.getChallengeIcon()).orElse(""))
+                            .achievementRate(rate)
+                            .durationDays(totalDays)
+                            .build();
+                })
+                .toList();
+
+        return ChallengePendingListResponse.builder()
+                .weeklyIcons(weeklyIcons)
+                .challenges(items)
+                .build();
+    }
+
+    // 달성률 계산
+    private int computeAchievementRateSafe(long postedDays, int totalDays) {
+        if (totalDays <= 0) return 0;
+        long clamped = Math.max(0, Math.min(postedDays, totalDays));
+        return (int) ((clamped * 100) / totalDays);
+    }
+
+    @Transactional
+    public ChallengePendingListResponse findCertifiedToday(Long userId) {
+
+        ZoneId zoneId = ZoneId.of("Asia/Seoul");
+        LocalDate today = LocalDate.now(zoneId);
+        LocalDateTime start = today.atStartOfDay();
+        LocalDateTime end = start.plusDays(1);
+
+        LocalDate startOfWeekDate = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+        LocalDate endOfWeekDate = startOfWeekDate.plusDays(6);
+        LocalDateTime startOfWeek = startOfWeekDate.atStartOfDay();
+        LocalDateTime endOfWeek = endOfWeekDate.plusDays(1).atStartOfDay();
+
+        // 주간 캘린더 기록 저장
+        Map<DayOfWeek, List<String>> weeklyIcons =
+                buildWeeklyFirstThreeIcons(userId, startOfWeek, endOfWeek);
+
+        List<Challenge> myChallenges = challengeRepository.findAllByUser_Id(userId);
+
+        // 오늘 인증한 챌린지 ID
+        Set<Long> certifiedTodayIds = certificationRepository
+                .findCertifiedChallengeIdsToday(userId, start, end);
+
+        // 사용자별 챌린지 전체 인증 카운트
+        Map<Long, Long> countMap = certificationRepository.findCountsByUser(userId).stream()
+                .collect(Collectors.toMap(
+                        CertificationRepository.ChallengeCountProjection::getChallengeId,
+                        CertificationRepository.ChallengeCountProjection::getCnt
+                ));
+
+        // 인증 챌린지 필터링 + 달성률 계산
+        List<ChallengePendingResponse> items = myChallenges.stream()
+                .filter(ch -> certifiedTodayIds.contains(ch.getId()))
+                .map(ch -> {
+                    int totalDays = computeTotalDays(ch);
+                    long postedDays = countMap.getOrDefault(ch.getId(), 0L);
+                    int rate = computeAchievementRateSafe(postedDays, totalDays);
+
+                    return ChallengePendingResponse.builder()
+                            .id(ch.getId())
+                            .title(Optional.ofNullable(ch.getTitle()).orElse(""))
+                            .challengeIcon(Optional.ofNullable(ch.getChallengeIcon()).orElse(""))
+                            .achievementRate(rate)
+                            .durationDays(totalDays)
+                            .build();
+                })
+                .toList();
+
+        return ChallengePendingListResponse.builder()
+                .weeklyIcons(weeklyIcons)
+                .challenges(items)
+                .build();
+
+    }
+
+    // 주간 챌린지 인증 기록 조회
+    private Map<DayOfWeek, List<String>> buildWeeklyFirstThreeIcons(
+            Long userId, LocalDateTime startOfWeek, LocalDateTime endOfWeek
+    ) {
+        // 요일 순서 고정
+        Map<DayOfWeek, List<String>> result = new LinkedHashMap<>();
+        for (int i = 0; i < 7; i++) {
+            result.put(DayOfWeek.SUNDAY.plus(i), new ArrayList<>());
+        }
+
+        List<Certification> rows = certificationRepository
+                .findAllByUser_IdAndCreatedAtBetweenOrderByCreatedAtAsc(userId, startOfWeek, endOfWeek);
+
+        for (Certification cert : rows) {
+            DayOfWeek dow = cert.getCreatedAt().getDayOfWeek();
+            List<String> icons = result.get(dow);
+
+            // 최대 3개
+            if (icons.size() < 3) {
+                icons.add(cert.getChallenge().getChallengeIcon());
+            }
+        }
+
+        result.replaceAll((k, v) -> List.copyOf(v));
+        return result;
+    }
+
+    @Transactional
+    public ChallengeDetailResponse getDetail(Long userId, Long challengeId) {
+        Challenge challenge = challengeRepository.findById(challengeId)
+                .orElseThrow(() -> new BusinessException(ExceptionType.CHALLENGE_NOT_FOUND));
+
+        // 남은 기간 계산
+        long remainingDays = 0;
+        LocalDate today = LocalDate.now();
+        LocalDate endDate = challenge.getEndDate();
+        if (endDate != null) {
+            long diff = ChronoUnit.DAYS.between(today, endDate);
+            remainingDays = Math.max(0, diff);
+        }
+
+        // 달성률: (총 인증 수 / durationDays) * 100
+        int achievementRate = 0;
+        Integer durationDays = challenge.getDurationDays();
+        long myCertCount = certificationRepository.countByChallenge_IdAndUser_Id(challengeId, userId);
+        if (durationDays != null && durationDays > 0) {
+            achievementRate = (int) ((myCertCount * 100.0) / durationDays);
+        }
+
+        // 오늘 인증 여부
+        ZoneId zoneId = ZoneId.of("Asia/Seoul");
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        boolean certifiedToday = certificationRepository.existsByChallenge_IdAndUser_IdAndCreatedAtBetween(
+                challengeId, userId, startOfDay, endOfDay
+        );
+
+        String status = certifiedToday ? "certified" : "not_certified";
+
+        // 내 인증 목록
+        List<Certification> myCerts = certificationRepository
+                .findByChallenge_IdAndUser_IdOrderByCreatedAtDesc(challengeId, userId);
+
+        List<ChallengeDetailResponse.CertificationSummary> certSummaries = myCerts.stream()
+                .map(c -> ChallengeDetailResponse.CertificationSummary.builder()
+                        .imageUrl(c.getImageUrl())
+                        .title(c.getTitle())
+                        .content(c.getContent())
+                        .createdAt(c.getCreatedAt().toLocalDate())
+                        .build())
+                .toList();
+
+        return ChallengeDetailResponse.builder()
+                .title(challenge.getTitle())
+                .content(challenge.getContent())
+                .challengeIcon(challenge.getChallengeIcon()) // 문자열 아이콘 필드 가정
+                .remainingDays(remainingDays)
+                .achievementRate(achievementRate)
+                .certifications(certSummaries)
+                .status(status)
+                .build();
+    }
+
+    // 챌린지 전체 일수 계산
+    private int computeTotalDays(Challenge ch) {
+        if (ch.getDurationDays() > 0) {
+            return ch.getDurationDays();
+        }
+        LocalDate startDate = ch.getStartDate();
+        LocalDate endDate = ch.getEndDate();
+        if (startDate != null && endDate != null && !endDate.isBefore(startDate)) {
+            long days = Duration.between(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay()).toDays();
+            return (int) Math.max(days, 1);
+        }
+        return 1;
+    }
+
+    // 챌린지 생성 입력 데이터 검증
+    private void validateChallenge(String rawTitle, String rawContent) {
+        String title = rawTitle == null ? null : rawTitle.trim();
+        String content = rawContent == null ? null : rawContent.trim();
+
+        if (!StringUtils.hasText(title)) {
+            throw new BusinessException(ExceptionType.CHALLENGE_TITLE_REQUIRED);
+        }
+        if (title.length() > 20) {
+            throw new BusinessException(ExceptionType.CHALLENGE_TITLE_TOO_LONG);
+        }
+        if (!StringUtils.hasText(content)) {
+            throw new BusinessException(ExceptionType.CHALLENGE_CONTENT_REQUIRED);
+        }
+        if (content.length() > 50) {
+            throw new BusinessException(ExceptionType.CHALLENGE_CONTENT_TOO_LONG);
+        }
+    }
+
+}

@@ -30,6 +30,28 @@ public enum ExceptionType {
     // User
     USER_NOT_FOUND(NOT_FOUND, "U001","사용자가 존재하지 않습니다"),
 
+    // Challenge
+    CHALLENGE_NOT_FOUND(NOT_FOUND,"CH001", "존재하지 않는 챌린지입니다."),
+    CHALLENGE_TITLE_REQUIRED(BAD_REQUEST, "CH002", "챌린지 제목은 반드시 입력해야 합니다."),
+    CHALLENGE_TITLE_TOO_LONG(BAD_REQUEST, "CH003", "챌린지 제목은 20자 이하로 입력해주세요."),
+    CHALLENGE_CONTENT_REQUIRED(BAD_REQUEST, "CH004", "챌린지 내용은 반드시 입력해야 합니다."),
+    CHALLENGE_CONTENT_TOO_LONG(BAD_REQUEST, "CH005", "챌린지 내용은 300자 이하로 입력해주세요."),
+
+    // Certification
+    CERTIFICATION_NOT_FOUND(NOT_FOUND,"CE001", "해당 인증을 찾을 수 없습니다."),
+    CERTIFICATION_FORBIDDEN(FORBIDDEN, "CE002", "해당 인증글을 수정할 권한이 없습니다."),
+    ALREADY_CERTIFIED_TODAY(BAD_REQUEST,"CE003", "오늘은 이미 해당 챌린지에 인증을 완료했습니다."),
+    CERTIFICATION_TITLE_REQUIRED(BAD_REQUEST, "CE004", "인증 제목은 반드시 입력해야 합니다."),
+    CERTIFICATION_TITLE_TOO_LONG(BAD_REQUEST, "CE005", "인증 제목은 20자 이하로 입력해주세요."),
+    CERTIFICATION_CONTENT_REQUIRED(BAD_REQUEST, "CE006", "인증 내용은 반드시 입력해야 합니다."),
+    CERTIFICATION_CONTENT_TOO_LONG(BAD_REQUEST, "CE007", "인증 내용은 300자 이하로 입력해주세요."),
+
+    // Image
+    INVALID_IMAGE_FILE(BAD_REQUEST, "IMG001", "업로드할 이미지가 비어있거나 손상된 이미지입니다."),
+    IMAGE_DELETE_FAILED(INTERNAL_SERVER_ERROR, "IMG002", "기존 이미지를 삭제하는 중 오류가 발생했습니다."),
+    IMAGE_UPLOAD_URL_EMPTY(BAD_REQUEST, "IMG003", "이미지 업로드 실패: URL이 비어있습니다."),
+    IMAGE_UPLOAD_FAILED(INTERNAL_SERVER_ERROR, "IMG004", "이미지 업로드 중 오류가 발생했습니다."),
+
     ;
 
     private final HttpStatus status;

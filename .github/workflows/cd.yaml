@@ -2,48 +2,43 @@ name: CD
 
 on:
   workflow_run:
-    workflows: ["CI"] # CI 워크플로우 이름
+    workflows: ["CI"]
     types:
-      - completed # CI 완료 후 실행
+      - completed
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }} # CI 성공 시만 실행
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      # EC2에 직접 접속하여 모든 작업을 처리합니다.
-      - name: Deploy to EC2 via Git Clone
+      - name: Deploy to EC2 via systemd
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
-          key: ${{ secrets.EC2_KEY }} # Actions Secret에 저장된 EC2 접속용 프라이빗 키
+          key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            # 0. 에러 발생 시 즉시 중단
             set -e
-
-            # 1. GitHub의 SSH Key를 EC2에 등록 (최초 접속 시 확인 프롬프트를 생략하기 위함)
+            # GitHub known_hosts 등록 (처음 clone 시 필요)
             ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-            # 2. 배포 디렉토리 설정 및 소스코드 클론/업데이트
+            # 배포 디렉토리 설정
             REPO_URL="git@github.com:9oormthon-univ/2025_SEASONTHON_TEAM_78_BE.git"
             DEPLOY_DIR="/home/ubuntu/backend"
 
+            # 코드 클론 또는 pull
             if [ -d "$DEPLOY_DIR/.git" ]; then
-              echo ">>> 기존 레포지토리를 업데이트합니다."
-              cd $DEPLOY_DEPLPOY_DIR
+              cd $DEPLOY_DIR
               git reset --hard HEAD
               git pull origin main
             else
-              echo ">>> 새 레포지토리를 클론합니다."
-              rm -rf $DEPLOY_DIR # 기존에 git 폴더가 아닌 경우를 대비해 삭제
+              rm -rf $DEPLOY_DIR
               git clone $REPO_URL $DEPLOY_DIR
               cd $DEPLOY_DIR
             fi
 
-            # 3. .env 파일 생성
-            echo ">>> .env 파일을 생성합니다."
+            # .env 생성
             cat <<EOF > .env
             DEV_DB_HOST=${{ secrets.DEV_DB_HOST }}
             DEV_DB_PORT=${{ secrets.DEV_DB_PORT }}
@@ -59,21 +54,14 @@ jobs:
             CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
             EOF
 
-            # 4. 실행 중인 기존 애플리케이션 종료
-            echo ">>> 기존 애플리케이션을 종료합니다."
-            pkill -f '.jar' || true
-
-            # 5. Gradle로 프로젝트 빌드 (EC2 인스턴스에 Java와 Gradle이 설치되어 있어야 합니다)
-            echo ">>> 프로젝트를 빌드합니다."
+            # Gradle 빌드
             chmod +x ./gradlew
             ./gradlew clean build -x test
 
-            # 6. 새 애플리케이션 백그라운드 실행
-            echo ">>> 새 애플리케이션을 시작합니다."
-            JAR_FILE=$(find build/libs -name "*.jar" | head -n 1)
-            nohup java -jar $JAR_FILE --spring.profiles.active=dev > app.log 2>&1 &
+            # systemd 서비스 재시작
+            sudo systemctl daemon-reload
+            sudo systemctl restart backend.service
+            sudo systemctl enable backend.service
 
-            echo ">>> 배포가 완료되었습니다."
-            sleep 10
-            tail -n 30 app.log
-
+            # 로그 확인 (최근 30줄)
+            sudo journalctl -u cinepick-backend.service -n 30 --no-pager

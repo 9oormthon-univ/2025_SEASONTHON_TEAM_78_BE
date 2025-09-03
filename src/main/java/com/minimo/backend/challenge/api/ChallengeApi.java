@@ -55,7 +55,7 @@ public interface ChallengeApi {
     );
 
     @Operation(
-            summary = "오늘 인증하지 않은 챌린지 조회",
+            summary = "미인증 챌린지 조회",
             description = "오늘 인증하지 않은 챌린지를 조회합니다."
     )
     @SwaggerApiResponses(

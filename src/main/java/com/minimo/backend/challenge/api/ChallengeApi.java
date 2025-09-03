@@ -66,6 +66,17 @@ public interface ChallengeApi {
     ResponseEntity<ChallengePendingListResponse> getNotCertified(@Parameter(hidden = true) Long userId);
 
     @Operation(
+            summary = "인증한 챌린지 조회",
+            description = "오늘 인증한 챌린지를 조회합니다."
+    )
+    @SwaggerApiResponses(
+            success = @SwaggerApiSuccessResponse(description = "인증한 챌린지 목록 조회 성공")
+    )
+    @AssignUserId
+    @GetMapping("/certified")
+    ResponseEntity<ChallengePendingListResponse> getCertified(@Parameter(hidden = true) Long userId);
+
+    @Operation(
             summary = "컬렉션 조회",
             description = "사용자가 완료한 챌린지 컬렉션 목록을 조회합니다."
     )

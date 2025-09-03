@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 
 @Entity
@@ -37,5 +38,13 @@ public class User extends BaseEntity {
         this.picture = picture;
         this.provider = provider;
         this.providerId = providerId;
+    }
+
+    public void updateProfile(JsonNullable<String> picture, JsonNullable<String> nickname){
+
+        if(picture.isPresent())
+            this.picture = picture.get();
+        if(nickname.isPresent())
+            this.nickname = nickname.get();
     }
 }

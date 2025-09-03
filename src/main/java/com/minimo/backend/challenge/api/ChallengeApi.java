@@ -38,6 +38,21 @@ public interface ChallengeApi {
             @Parameter(hidden = true) Long userId,
             @Valid @RequestBody CreateChallengeRequest request
     );
+
+    @Operation(
+            summary = "챌린지 삭제",
+            description = "기존에 등록한 챌린지를 삭제합니다."
+    )
+    @SwaggerApiResponses(
+            success = @SwaggerApiSuccessResponse(description = "챌린지 삭제 성공"),
+            errors = @SwaggerApiFailedResponse(ExceptionType.CHALLENGE_NOT_FOUND)
+    )
+    @AssignUserId
+    @DeleteMapping("/{challengeId}")
+    ResponseEntity<Void> deleteChallenge(
+            @Parameter(description = "삭제할 챌린지의 고유 ID", required = true)
+            @PathVariable Long challengeId
+    );
     
     @Operation(
             summary = "컬렉션 조회",

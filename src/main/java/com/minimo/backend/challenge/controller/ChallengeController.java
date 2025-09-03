@@ -20,9 +20,6 @@ public class ChallengeController implements ChallengeApi {
 
     private final ChallengeService challengeService;
 
-    @Operation(
-            summary = "새로운 챌린지 생성"
-    )
     @PostMapping
     public ResponseEntity<CreateChallengeResponse> createChallenge(
             @AuthenticationPrincipal Long userId,
@@ -32,9 +29,6 @@ public class ChallengeController implements ChallengeApi {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(
-            summary = "챌린지 삭제"
-    )
     @DeleteMapping("/{challengeId}")
     public ResponseEntity<Void> deleteChallenge(@PathVariable Long challengeId) {
         challengeService.delete(challengeId);

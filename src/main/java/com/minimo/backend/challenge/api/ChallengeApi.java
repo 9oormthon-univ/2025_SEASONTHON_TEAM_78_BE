@@ -1,7 +1,10 @@
 package com.minimo.backend.challenge.api;
 
+import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
+import com.minimo.backend.challenge.dto.response.ChallengePendingListResponse;
 import com.minimo.backend.challenge.dto.response.CollectionDetailResponse;
 import com.minimo.backend.challenge.dto.response.CollectionResponse;
+import com.minimo.backend.challenge.dto.response.CreateChallengeResponse;
 import com.minimo.backend.global.aop.AssignUserId;
 import com.minimo.backend.global.config.swagger.SwaggerApiFailedResponse;
 import com.minimo.backend.global.config.swagger.SwaggerApiResponses;
@@ -10,15 +13,32 @@ import com.minimo.backend.global.exception.ExceptionType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @Tag(name = "챌린지 API", description = "챌린지 관련 API")
 public interface ChallengeApi {
 
+    @Operation(
+            summary = "챌린지 등록",
+            description = "새로운 챌린지를 등록합니다."
+    )
+    @SwaggerApiResponses(
+            success = @SwaggerApiSuccessResponse(description = "챌린지 등록 성공"),
+            errors = @SwaggerApiFailedResponse(ExceptionType.USER_NOT_FOUND)
+    )
+    @AssignUserId
+    @PostMapping
+    ResponseEntity<CreateChallengeResponse> createChallenge(
+            @Parameter(hidden = true) Long userId,
+            @Valid @RequestBody CreateChallengeRequest request
+    );
+    
     @Operation(
             summary = "컬렉션 조회",
             description = "사용자가 완료한 챌린지 컬렉션 목록을 조회합니다."

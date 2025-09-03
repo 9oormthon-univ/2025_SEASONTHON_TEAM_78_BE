@@ -1,5 +1,6 @@
 package com.minimo.backend.challenge.controller;
 
+import com.minimo.backend.challenge.api.ChallengeApi;
 import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
 import com.minimo.backend.challenge.dto.response.*;
 import com.minimo.backend.challenge.service.ChallengeService;
@@ -15,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/challenges")
 @RequiredArgsConstructor
-public class ChallengeController {
+public class ChallengeController implements ChallengeApi {
 
     private final ChallengeService challengeService;
 

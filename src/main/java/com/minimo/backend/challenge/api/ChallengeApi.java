@@ -1,0 +1,48 @@
+package com.minimo.backend.challenge.api;
+
+import com.minimo.backend.challenge.dto.response.CollectionDetailResponse;
+import com.minimo.backend.challenge.dto.response.CollectionResponse;
+import com.minimo.backend.global.aop.AssignUserId;
+import com.minimo.backend.global.config.swagger.SwaggerApiFailedResponse;
+import com.minimo.backend.global.config.swagger.SwaggerApiResponses;
+import com.minimo.backend.global.config.swagger.SwaggerApiSuccessResponse;
+import com.minimo.backend.global.exception.ExceptionType;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.List;
+
+@Tag(name = "챌린지 API", description = "챌린지 관련 API")
+public interface ChallengeApi {
+
+    @Operation(
+            summary = "컬렉션 조회",
+            description = "사용자가 완료한 챌린지 컬렉션 목록을 조회합니다."
+    )
+    @SwaggerApiResponses(
+            success = @SwaggerApiSuccessResponse(description = "컬렉션 목록 조회 성공")
+    )
+    @AssignUserId
+    @GetMapping("/collections")
+    ResponseEntity<List<CollectionResponse>> getCollections(@Parameter(hidden = true) Long userId);
+
+    @Operation(
+            summary = "컬렉션 카드 상세 조회",
+            description = "컬렉션 카드의 상세정보를 조회합니다."
+    )
+    @SwaggerApiResponses(
+        success = @SwaggerApiSuccessResponse(description = "컬렉션 카드 상세 조회 성공"),
+        errors = @SwaggerApiFailedResponse(ExceptionType.CHALLENGE_NOT_FOUND)
+    )
+    @AssignUserId
+    @GetMapping("/collenctions/{challengeId}")
+    ResponseEntity<CollectionDetailResponse> getCollectionDetail(
+            @Parameter(hidden = true) Long userId,
+            @Parameter(description = "조회할 챌린지의 고유 ID", required = true)
+            @PathVariable Long challengeId
+    );
+}

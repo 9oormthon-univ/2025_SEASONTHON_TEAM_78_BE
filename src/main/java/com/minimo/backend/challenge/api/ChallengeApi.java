@@ -1,10 +1,7 @@
 package com.minimo.backend.challenge.api;
 
 import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
-import com.minimo.backend.challenge.dto.response.ChallengePendingListResponse;
-import com.minimo.backend.challenge.dto.response.CollectionDetailResponse;
-import com.minimo.backend.challenge.dto.response.CollectionResponse;
-import com.minimo.backend.challenge.dto.response.CreateChallengeResponse;
+import com.minimo.backend.challenge.dto.response.*;
 import com.minimo.backend.global.aop.AssignUserId;
 import com.minimo.backend.global.config.swagger.SwaggerApiFailedResponse;
 import com.minimo.backend.global.config.swagger.SwaggerApiResponses;
@@ -75,6 +72,22 @@ public interface ChallengeApi {
     @AssignUserId
     @GetMapping("/certified")
     ResponseEntity<ChallengePendingListResponse> getCertified(@Parameter(hidden = true) Long userId);
+
+    @Operation(
+            summary = "챌린지 상세 조회",
+            description = "해당 챌린지의 상세 내용을 조회합니다."
+    )
+    @SwaggerApiResponses(
+            success = @SwaggerApiSuccessResponse(description = "챌린지 상세 조회 성공"),
+            errors = @SwaggerApiFailedResponse(ExceptionType.CHALLENGE_NOT_FOUND)
+    )
+    @AssignUserId
+    @GetMapping("/{challengeId}")
+    public ResponseEntity<ChallengeDetailResponse> getDetail(
+            @Parameter(hidden = true) Long userId,
+            @Parameter(description = "상세 조회할 챌린지의 고유 ID", required = true)
+            @PathVariable Long challengeId
+    );
 
     @Operation(
             summary = "컬렉션 조회",

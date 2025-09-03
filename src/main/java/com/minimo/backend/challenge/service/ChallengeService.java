@@ -3,11 +3,9 @@ package com.minimo.backend.challenge.service;
 import com.minimo.backend.certification.domain.Certification;
 import com.minimo.backend.certification.repository.CertificationRepository;
 import com.minimo.backend.challenge.domain.Challenge;
+import com.minimo.backend.challenge.domain.ChallengeStatus;
 import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
-import com.minimo.backend.challenge.dto.response.ChallengeDetailResponse;
-import com.minimo.backend.challenge.dto.response.ChallengePendingListResponse;
-import com.minimo.backend.challenge.dto.response.ChallengePendingResponse;
-import com.minimo.backend.challenge.dto.response.CreateChallengeResponse;
+import com.minimo.backend.challenge.dto.response.*;
 import com.minimo.backend.challenge.repository.ChallengeRepository;
 import com.minimo.backend.global.exception.BusinessException;
 import com.minimo.backend.global.exception.ExceptionType;
@@ -15,8 +13,6 @@ import com.minimo.backend.user.domain.User;
 import com.minimo.backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataAccessException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -267,6 +263,24 @@ public class ChallengeService {
                 .certifications(certSummaries)
                 .status(status)
                 .build();
+    }
+
+    @Transactional
+    public List<CollectionResponse> findCollections(Long userId) {
+        List<Challenge> challenges = challengeRepository.
+                findAllByUser_IdAndStatus(userId, ChallengeStatus.COMPLETED);
+
+        List<CollectionResponse> responses = challenges.stream()
+                .map(ch -> CollectionResponse.builder()
+                        .id(ch.getId())
+                        .title(ch.getTitle())
+                        .endDate(ch.getEndDate())
+                        .challengeIcon(ch.getChallengeIcon())
+                        .build()
+                )
+                .toList();
+
+        return responses;
     }
 
     // 챌린지 전체 일수 계산

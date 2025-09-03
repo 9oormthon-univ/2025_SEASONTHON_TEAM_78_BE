@@ -21,7 +21,7 @@ public class UserController implements UserApi {
     private final UserService userService;
 
     @AssignUserId
-    @DeleteMapping("/logout")
+    @DeleteMapping("/logout")   
     @PreAuthorize(" isAuthenticated() and hasRole('USER')")
     public ResponseEntity<ResponseBody<Void>> logout(Long userId) {
         userService.logout(userId);

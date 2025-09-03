@@ -53,7 +53,18 @@ public interface ChallengeApi {
             @Parameter(description = "삭제할 챌린지의 고유 ID", required = true)
             @PathVariable Long challengeId
     );
-    
+
+    @Operation(
+            summary = "오늘 인증하지 않은 챌린지 조회",
+            description = "오늘 인증하지 않은 챌린지를 조회합니다."
+    )
+    @SwaggerApiResponses(
+        success = @SwaggerApiSuccessResponse(description = "미인증 챌린지 목록 조회 성공")
+    )
+    @AssignUserId
+    @GetMapping("/not-certified")
+    ResponseEntity<ChallengePendingListResponse> getNotCertified(@Parameter(hidden = true) Long userId);
+
     @Operation(
             summary = "컬렉션 조회",
             description = "사용자가 완료한 챌린지 컬렉션 목록을 조회합니다."

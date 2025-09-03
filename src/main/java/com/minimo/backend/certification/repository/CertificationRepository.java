@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface CertificationRepository extends JpaRepository<Certification, Long> {
@@ -49,6 +50,8 @@ public interface CertificationRepository extends JpaRepository<Certification, Lo
         group by c.challenge.id
     """)
     List<ChallengeCountProjection> findCountsByUser(@Param("userId") Long userId);
+
+    Optional<Certification> findFirstByChallenge_IdAndUser_IdOrderByCreatedAtAsc(Long challengeId, Long userId);
 
     interface ChallengeCountProjection {
         Long getChallengeId();

@@ -283,6 +283,25 @@ public class ChallengeService {
         return responses;
     }
 
+    @Transactional
+    public CollectionDetailResponse findCollectionDetail(Long userId, Long challengeId) {
+        Challenge challenge = challengeRepository.findByIdAndUser_Id(challengeId, userId)
+                .orElseThrow(() -> new BusinessException(ExceptionType.CHALLENGE_NOT_FOUND));
+
+        String imageUrl = certificationRepository.findFirstByChallenge_IdAndUser_IdOrderByCreatedAtAsc(challengeId, userId)
+                .map(Certification::getImageUrl)
+                .orElse(null);
+
+        CollectionDetailResponse response = CollectionDetailResponse.builder()
+                .title(challenge.getTitle())
+                .content(challenge.getContent())
+                .challengeIcon(challenge.getChallengeIcon())
+                .imageUrl(imageUrl)
+                .build();
+
+        return response;
+    }
+
     // 챌린지 전체 일수 계산
     private int computeTotalDays(Challenge ch) {
         if (ch.getDurationDays() > 0) {

@@ -1,10 +1,7 @@
 package com.minimo.backend.challenge.controller;
 
 import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
-import com.minimo.backend.challenge.dto.response.ChallengeDetailResponse;
-import com.minimo.backend.challenge.dto.response.ChallengePendingListResponse;
-import com.minimo.backend.challenge.dto.response.CollectionResponse;
-import com.minimo.backend.challenge.dto.response.CreateChallengeResponse;
+import com.minimo.backend.challenge.dto.response.*;
 import com.minimo.backend.challenge.service.ChallengeService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -71,6 +68,14 @@ public class ChallengeController {
     public ResponseEntity<List<CollectionResponse>> getCollections(@AuthenticationPrincipal Long userId) {
         System.out.println("user id = " + userId);
         List<CollectionResponse> response = challengeService.findCollections(userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/collections/{challengeId}")
+    public ResponseEntity<CollectionDetailResponse> getCollectionDetail(@AuthenticationPrincipal Long userId,
+                                                                        @PathVariable Long challengeId) {
+        CollectionDetailResponse response = challengeService.findCollectionDetail(userId, challengeId);
 
         return ResponseEntity.ok(response);
     }

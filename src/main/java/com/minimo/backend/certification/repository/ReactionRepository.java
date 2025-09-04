@@ -24,6 +24,15 @@ public interface ReactionRepository extends JpaRepository<Reaction, Long> {
     """)
     List<ReactionProjection> findUsersByCertificationIds(@Param("certIds") List<Long> certIds);
 
+    @Query("""
+        select r.emojiType as emojiType,
+               count(r)     as cnt
+        from Reaction r
+        where r.certification.id in :certIds
+        group by r.emojiType
+    """)
+    List<ReactionCountByEmojiProjection> countByEmojiTypeForCertificationIds(@Param("certIds") List<Long> certIds);
+
     // 특정 인증글에 대해, 사용자가 특정 이모지를 이미 눌렀는지 확인
     boolean existsByCertificationAndUserAndEmojiType(Certification certification, User user, EmojiType emojiType);
 }

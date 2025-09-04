@@ -3,6 +3,7 @@ package com.minimo.backend.challenge.service;
 import com.minimo.backend.certification.domain.Certification;
 import com.minimo.backend.certification.domain.EmojiType;
 import com.minimo.backend.certification.repository.CertificationRepository;
+import com.minimo.backend.certification.repository.ReactionCountByEmojiProjection;
 import com.minimo.backend.certification.repository.ReactionProjection;
 import com.minimo.backend.certification.repository.ReactionRepository;
 import com.minimo.backend.challenge.domain.Challenge;
@@ -344,6 +345,26 @@ public class ChallengeService {
         Challenge challenge = challengeRepository.findByIdAndUser_Id(challengeId, userId)
                 .orElseThrow(() -> new BusinessException(ExceptionType.CHALLENGE_NOT_FOUND));
 
+        // 인증글 조회 및 ID 추출
+        List<Certification> myCerts = certificationRepository.findByChallenge_IdAndUser_IdOrderByCreatedAtDesc(challengeId, userId);
+        List<Long> certIds = myCerts.stream().map(Certification::getId).toList();
+
+        // 응원 수 집계
+        List<CollectionDetailResponse.ReactionSummary> reactions;
+        if (!certIds.isEmpty()) {
+            List<ReactionCountByEmojiProjection> rows =
+                    reactionRepository.countByEmojiTypeForCertificationIds(certIds);
+
+            reactions = rows.stream()
+                    .map(r -> CollectionDetailResponse.ReactionSummary.builder()
+                            .emojiType(r.getEmojiType())
+                            .count((int) r.getCnt())
+                            .build())
+                    .toList();
+        } else {
+            reactions = List.of();
+        }
+
         String imageUrl = certificationRepository.findFirstByChallenge_IdAndUser_IdOrderByCreatedAtAsc(challengeId, userId)
                 .map(Certification::getImageUrl)
                 .orElse(null);
@@ -353,6 +374,7 @@ public class ChallengeService {
                 .content(challenge.getContent())
                 .challengeIcon(challenge.getChallengeIcon())
                 .imageUrl(imageUrl)
+                .reactions(reactions)
                 .build();
 
         return response;

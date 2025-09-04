@@ -1,8 +1,11 @@
 package com.minimo.backend.challenge.dto.response;
 
+import com.minimo.backend.certification.domain.EmojiType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.List;
 
 @Getter
 @Builder
@@ -19,4 +22,15 @@ public class CollectionDetailResponse {
 
     @Schema(description = "인증 이미지 URL", example = "https://example.com/image.jpg")
     private String imageUrl;
+
+    @Schema(description = "종류별 응원 개수")
+    private List<ReactionSummary> reactions;
+
+    @Getter
+    @Builder
+    public static class ReactionSummary {
+        private EmojiType emojiType;
+        private int count;
+    }
+
 }

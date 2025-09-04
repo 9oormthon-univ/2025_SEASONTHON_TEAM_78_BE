@@ -45,6 +45,8 @@ public enum ExceptionType {
     CERTIFICATION_TITLE_TOO_LONG(BAD_REQUEST, "CE005", "인증 제목은 20자 이하로 입력해주세요."),
     CERTIFICATION_CONTENT_REQUIRED(BAD_REQUEST, "CE006", "인증 내용은 반드시 입력해야 합니다."),
     CERTIFICATION_CONTENT_TOO_LONG(BAD_REQUEST, "CE007", "인증 내용은 300자 이하로 입력해주세요."),
+    CERTIFICATION_CREATE_FAILED(BAD_REQUEST,"CE008" , "인증 글 생성에 실패하였습니다."),
+    CERTIFICATION_UPDATE_FAILED(BAD_REQUEST, "CE009", "인증 글 수정에 실패하였습니다."),
 
     // Image
     IMAGE_NOT_FOUND(NOT_FOUND, "IMG001", "이미지를 찾을 수 없습니다."),
@@ -52,6 +54,7 @@ public enum ExceptionType {
     IMAGE_DELETE_FAILED(INTERNAL_SERVER_ERROR, "IMG003", "기존 이미지를 삭제하는 중 오류가 발생했습니다."),
     IMAGE_UPLOAD_URL_EMPTY(BAD_REQUEST, "IMG004", "이미지 업로드 실패: URL이 비어있습니다."),
     IMAGE_UPLOAD_FAILED(INTERNAL_SERVER_ERROR, "IMG005", "이미지 업로드 중 오류가 발생했습니다."),
+
     ;
 
     private final HttpStatus status;

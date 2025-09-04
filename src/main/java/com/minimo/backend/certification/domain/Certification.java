@@ -6,6 +6,9 @@ import com.minimo.backend.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -35,4 +38,7 @@ public class Certification extends BaseEntity {
 
     @Column(nullable = false, length = 300)
     private String content;
+
+    @OneToMany(mappedBy = "certification", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<Reaction> reactions = new ArrayList<>();
 }

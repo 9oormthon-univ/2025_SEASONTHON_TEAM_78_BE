@@ -1,7 +1,9 @@
 package com.minimo.backend.certification.api;
 
 import com.minimo.backend.certification.dto.request.CreateCertificationRequest;
+import com.minimo.backend.certification.dto.request.ReactionRequest;
 import com.minimo.backend.certification.dto.request.UpdateCertificationRequest;
+import com.minimo.backend.certification.dto.response.CertificationFeedResponse;
 import com.minimo.backend.certification.dto.response.CreateCertificationResponse;
 import com.minimo.backend.certification.dto.response.UpdateCertificationResponse;
 import com.minimo.backend.global.aop.AssignUserId;
@@ -71,5 +73,50 @@ public interface CertificationApi {
             @PathVariable Long certificationId,
             @RequestPart("image") MultipartFile file,
             @RequestPart("request") UpdateCertificationRequest request
+    );
+
+    @Operation(
+            summary = "인증글 피드 조회",
+            description = "무한 스크롤 방식으로 인증글 피드를 조회합니다."
+    )
+    @SwaggerApiResponses(
+            success = @SwaggerApiSuccessResponse(
+                    description = "피드 조회 성공",
+                    response = CertificationFeedResponse.class
+            ),
+            errors = {
+                    @SwaggerApiFailedResponse(ExceptionType.NEED_AUTHORIZED),
+            }
+    )
+    @AssignUserId
+    @GetMapping("/feed")
+    @PreAuthorize("isAuthenticated()")
+    ResponseEntity<ResponseBody<List<CertificationFeedResponse>>> getFeed(
+            @Parameter(hidden = true) Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    );
+
+
+    @Operation(
+            summary = "인증글 응원하기",
+            description = "사용자가 인증글에 대해 응원을 남깁니다. 동일한 이모티콘은 한 번만 가능합니다."
+    )
+    @SwaggerApiResponses(
+            success = @SwaggerApiSuccessResponse(
+                    description = "응원하기 성공"
+            ),
+            errors = {
+                    @SwaggerApiFailedResponse(ExceptionType.NEED_AUTHORIZED),
+                    @SwaggerApiFailedResponse(ExceptionType.CERTIFICATION_NOT_FOUND),
+            }
+    )
+    @AssignUserId
+    @PostMapping("/{certificationId}/reactions")
+    @PreAuthorize("isAuthenticated()")
+    ResponseEntity<ResponseBody<Void>> addReaction(
+            @Parameter(hidden = true) Long userId,
+            @PathVariable Long certificationId,
+            @RequestBody ReactionRequest request
     );
 }

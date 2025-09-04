@@ -1,11 +1,15 @@
 package com.minimo.backend.certification.service;
 
 import com.minimo.backend.certification.domain.Certification;
+import com.minimo.backend.certification.domain.Reaction;
 import com.minimo.backend.certification.dto.request.CreateCertificationRequest;
+import com.minimo.backend.certification.dto.request.ReactionRequest;
 import com.minimo.backend.certification.dto.request.UpdateCertificationRequest;
+import com.minimo.backend.certification.dto.response.CertificationFeedResponse;
 import com.minimo.backend.certification.dto.response.CreateCertificationResponse;
 import com.minimo.backend.certification.dto.response.UpdateCertificationResponse;
 import com.minimo.backend.certification.repository.CertificationRepository;
+import com.minimo.backend.certification.repository.ReactionRepository;
 import com.minimo.backend.challenge.domain.Challenge;
 import com.minimo.backend.challenge.domain.ChallengeStatus;
 import com.minimo.backend.challenge.repository.ChallengeRepository;
@@ -14,14 +18,16 @@ import com.minimo.backend.global.exception.BusinessException;
 import com.minimo.backend.global.exception.ExceptionType;
 import com.minimo.backend.user.domain.User;
 import com.minimo.backend.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -33,6 +39,7 @@ public class CertificationService {
     private final CertificationRepository certificationRepository;
     private final UserRepository userRepository;
     private final CloudinaryImageService cloudinaryImageService;
+    private final ReactionRepository reactionRepository;
 
     private static final int MAX_TITLE_CODEPOINTS = 20;
     private static final int MAX_CONTENT_CODEPOINTS = 300;
@@ -189,5 +196,32 @@ public class CertificationService {
         if (count > MAX_CONTENT_CODEPOINTS) {
             throw new BusinessException(ExceptionType.CERTIFICATION_CONTENT_TOO_LONG);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<CertificationFeedResponse> getFeed(Long userId, int page, int size) {
+        return certificationRepository.findCertificationFeed(userId, PageRequest.of(page, size));
+    }
+
+    @Transactional
+    public void addReaction(Long userId, Long certificationId, ReactionRequest request) {
+        Certification certification = certificationRepository.findById(certificationId)
+                .orElseThrow(() -> new RuntimeException("Certification not found"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 중복 체크
+        if (reactionRepository.existsByCertificationAndUserAndEmojiType(certification, user, request.getEmojiType())) {
+            throw new RuntimeException("이미 동일한 이모티콘으로 응원하였습니다.");
+        }
+
+        Reaction reaction = Reaction.builder()
+                .certification(certification)
+                .user(user)
+                .emojiType(request.getEmojiType())
+                .build();
+
+        reactionRepository.save(reaction);
     }
 }

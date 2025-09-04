@@ -57,8 +57,14 @@ public class ChallengeDetailResponse {
     @Getter
     @Builder
     public static class ReactionSummary {
+
+        @Schema(description = "이모지 종류", example = "CLAP")
         private EmojiType emojiType;
+
+        @Schema(description = "이모지 개수", example = "3")
         private int count;
+
+        @Schema(description = "해당 이모지를 단 사람의 닉네임", example = "미르미")
         private List<String> nicknames;
     }
 }

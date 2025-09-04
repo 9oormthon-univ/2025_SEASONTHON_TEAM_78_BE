@@ -29,7 +29,11 @@ public class CollectionDetailResponse {
     @Getter
     @Builder
     public static class ReactionSummary {
+
+        @Schema(description = "이모지 종류", example = "CLAP")
         private EmojiType emojiType;
+
+        @Schema(description = "이모지 개수", example = "3")
         private int count;
     }
 

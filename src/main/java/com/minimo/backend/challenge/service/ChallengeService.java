@@ -381,6 +381,37 @@ public class ChallengeService {
         return response;
     }
 
+    @Transactional
+    public List<ActiveChallengeResponse> getMyActiveChallenges(Long userId) {
+        List<Challenge> challenges = challengeRepository.findByUser_IdAndStatus(userId, ChallengeStatus.ACTIVE);
+
+        LocalDate today = LocalDate.now();
+
+        return challenges.stream()
+                .map(ch -> {
+                    long remainingDays = calcRemainingDays(today, ch.getEndDate());
+
+                    // 이미 서비스에 있는 안전한 달성률 계산 메서드 활용
+                    long myCertCount = certificationRepository.countByChallenge_IdAndUser_Id(ch.getId(), userId);
+                    int achievementRate = computeAchievementRateSafe(myCertCount, ch.getDurationDays());
+
+                    return ActiveChallengeResponse.builder()
+                            .id(ch.getId())
+                            .challengeIcon(ch.getChallengeIcon())
+                            .title(ch.getTitle())
+                            .remainingDays(remainingDays)
+                            .achievementRate(achievementRate)
+                            .build();
+                })
+                .toList();
+    }
+
+    private long calcRemainingDays(LocalDate base, LocalDate endDate) {
+        if (endDate == null) return 0;
+        long diff = ChronoUnit.DAYS.between(base, endDate);
+        return Math.max(0, diff);
+    }
+
     // 챌린지 전체 일수 계산
     private int computeTotalDays(Challenge ch) {
         if (ch.getDurationDays() > 0) {

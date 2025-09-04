@@ -5,6 +5,7 @@ import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
 import com.minimo.backend.challenge.dto.request.FindChallengeRequest;
 import com.minimo.backend.challenge.dto.response.*;
 import com.minimo.backend.challenge.service.ChallengeService;
+import com.minimo.backend.global.aop.AssignUserId;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -80,5 +81,13 @@ public class ChallengeController implements ChallengeApi {
         CollectionDetailResponse response = challengeService.findCollectionDetail(userId, challengeId);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<ActiveChallengeResponse>> getMyActiveChallenges(
+            @AuthenticationPrincipal Long userId
+    ) {
+        List<ActiveChallengeResponse> responses = challengeService.getMyActiveChallenges(userId);
+        return ResponseEntity.ok(responses);
     }
 }

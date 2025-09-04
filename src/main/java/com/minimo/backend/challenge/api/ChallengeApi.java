@@ -122,4 +122,17 @@ public interface ChallengeApi {
             @Parameter(description = "조회할 챌린지의 고유 ID", required = true, example = "1")
             @PathVariable Long challengeId
     );
+
+    @Operation(
+            summary = "현재 진행중인 챌린지 조회",
+            description = "현재 진행중인 챌린지 목록을 조회합니다."
+    )
+    @SwaggerApiResponses(
+            success = @SwaggerApiSuccessResponse(description = "챌린지 목록 조회 성공")
+    )
+    @AssignUserId
+    @GetMapping("/active")
+    ResponseEntity<List<ActiveChallengeResponse>> getMyActiveChallenges(
+            @Parameter(hidden = true) Long userId
+    );
 }

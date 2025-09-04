@@ -11,5 +11,5 @@ public class ChallengePendingResponse {
     private String title;
     private String challengeIcon;
     private int achievementRate;
-    private int durationDays;
+    private int remainingDays;
 }

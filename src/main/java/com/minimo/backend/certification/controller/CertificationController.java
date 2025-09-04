@@ -2,7 +2,9 @@ package com.minimo.backend.certification.controller;
 
 import com.minimo.backend.certification.api.CertificationApi;
 import com.minimo.backend.certification.dto.request.CreateCertificationRequest;
+import com.minimo.backend.certification.dto.request.ReactionRequest;
 import com.minimo.backend.certification.dto.request.UpdateCertificationRequest;
+import com.minimo.backend.certification.dto.response.CertificationFeedResponse;
 import com.minimo.backend.certification.dto.response.CreateCertificationResponse;
 import com.minimo.backend.certification.dto.response.UpdateCertificationResponse;
 import com.minimo.backend.certification.service.CertificationService;
@@ -13,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 import static com.minimo.backend.global.response.ResponseUtil.createSuccessResponse;
 
@@ -47,5 +51,29 @@ public class CertificationController implements CertificationApi {
     ) {
         UpdateCertificationResponse response = certificationService.updateCertification(userId, certificationId, request, file);
         return ResponseEntity.ok(createSuccessResponse(response));
+    }
+
+    @AssignUserId
+    @GetMapping("/feed")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ResponseBody<List<CertificationFeedResponse>>> getFeed(
+            Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        List<CertificationFeedResponse> feed = certificationService.getFeed(userId, page, size);
+        return ResponseEntity.ok(createSuccessResponse(feed));
+    }
+
+    @AssignUserId
+    @PostMapping("/{certificationId}/reactions")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ResponseBody<Void>> addReaction(
+            Long userId,
+            @PathVariable Long certificationId,
+            @RequestBody ReactionRequest request
+    ) {
+        certificationService.addReaction(userId, certificationId, request);
+        return ResponseEntity.ok(createSuccessResponse());
     }
 }

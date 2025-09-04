@@ -47,11 +47,11 @@ public enum ExceptionType {
     CERTIFICATION_CONTENT_TOO_LONG(BAD_REQUEST, "CE007", "인증 내용은 300자 이하로 입력해주세요."),
 
     // Image
-    INVALID_IMAGE_FILE(BAD_REQUEST, "IMG001", "업로드할 이미지가 비어있거나 손상된 이미지입니다."),
-    IMAGE_DELETE_FAILED(INTERNAL_SERVER_ERROR, "IMG002", "기존 이미지를 삭제하는 중 오류가 발생했습니다."),
-    IMAGE_UPLOAD_URL_EMPTY(BAD_REQUEST, "IMG003", "이미지 업로드 실패: URL이 비어있습니다."),
-    IMAGE_UPLOAD_FAILED(INTERNAL_SERVER_ERROR, "IMG004", "이미지 업로드 중 오류가 발생했습니다."),
-
+    IMAGE_NOT_FOUND(NOT_FOUND, "IMG001", "이미지를 찾을 수 없습니다."),
+    INVALID_IMAGE_FILE(BAD_REQUEST, "IMG002", "업로드할 이미지가 비어있거나 손상된 이미지입니다."),
+    IMAGE_DELETE_FAILED(INTERNAL_SERVER_ERROR, "IMG003", "기존 이미지를 삭제하는 중 오류가 발생했습니다."),
+    IMAGE_UPLOAD_URL_EMPTY(BAD_REQUEST, "IMG004", "이미지 업로드 실패: URL이 비어있습니다."),
+    IMAGE_UPLOAD_FAILED(INTERNAL_SERVER_ERROR, "IMG005", "이미지 업로드 중 오류가 발생했습니다."),
     ;
 
     private final HttpStatus status;

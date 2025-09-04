@@ -1,9 +1,9 @@
 package com.minimo.backend.challenge.controller;
 
+import com.minimo.backend.challenge.api.ChallengeApi;
 import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
-import com.minimo.backend.challenge.dto.response.ChallengeDetailResponse;
-import com.minimo.backend.challenge.dto.response.ChallengePendingListResponse;
-import com.minimo.backend.challenge.dto.response.CreateChallengeResponse;
+import com.minimo.backend.challenge.dto.request.FindChallengeRequest;
+import com.minimo.backend.challenge.dto.response.*;
 import com.minimo.backend.challenge.service.ChallengeService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -12,16 +12,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/challenges")
 @RequiredArgsConstructor
-public class ChallengeController {
+public class ChallengeController implements ChallengeApi {
 
     private final ChallengeService challengeService;
 
-    @Operation(
-            summary = "새로운 챌린지 생성"
-    )
     @PostMapping
     public ResponseEntity<CreateChallengeResponse> createChallenge(
             @AuthenticationPrincipal Long userId,
@@ -31,9 +30,6 @@ public class ChallengeController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(
-            summary = "챌린지 삭제"
-    )
     @DeleteMapping("/{challengeId}")
     public ResponseEntity<Void> deleteChallenge(@PathVariable Long challengeId) {
         challengeService.delete(challengeId);
@@ -42,15 +38,21 @@ public class ChallengeController {
     }
 
     @GetMapping("/not-certified")
-    public ResponseEntity<ChallengePendingListResponse> getNotCertified(@AuthenticationPrincipal Long userId) {
-        ChallengePendingListResponse response = challengeService.findNotCertifiedToday(userId);
+    public ResponseEntity<ChallengePendingListResponse> getNotCertified(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody FindChallengeRequest request
+    ) {
+        System.out.println("API 실행");
+        ChallengePendingListResponse response = challengeService.findNotCertified(userId, request);
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/certified")
-    public ResponseEntity<ChallengePendingListResponse> getCertified(@AuthenticationPrincipal Long userId) {
-        ChallengePendingListResponse response = challengeService.findCertifiedToday(userId);
+    public ResponseEntity<ChallengePendingListResponse> getCertified(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody FindChallengeRequest request) {
+        ChallengePendingListResponse response = challengeService.findCertifiedToday(userId, request);
 
         return ResponseEntity.ok(response);
     }
@@ -61,6 +63,22 @@ public class ChallengeController {
             @PathVariable Long challengeId
     ) {
         ChallengeDetailResponse response = challengeService.getDetail(userId, challengeId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/collections")
+    public ResponseEntity<List<CollectionResponse>> getCollections(@AuthenticationPrincipal Long userId) {
+        System.out.println("user id = " + userId);
+        List<CollectionResponse> response = challengeService.findCollections(userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/collections/{challengeId}")
+    public ResponseEntity<CollectionDetailResponse> getCollectionDetail(@AuthenticationPrincipal Long userId,
+                                                                        @PathVariable Long challengeId) {
+        CollectionDetailResponse response = challengeService.findCollectionDetail(userId, challengeId);
+
         return ResponseEntity.ok(response);
     }
 }

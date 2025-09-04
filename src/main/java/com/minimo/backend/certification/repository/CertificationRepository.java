@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface CertificationRepository extends JpaRepository<Certification, Long> {
@@ -16,6 +17,16 @@ public interface CertificationRepository extends JpaRepository<Certification, Lo
             Long userId,
             LocalDateTime start,
             LocalDateTime end
+    );
+
+    // 특정 날짜 기준 챌린지 인증 수 조회
+    @Query("SELECT c.challenge.id AS challengeId, COUNT(c) AS cnt " +
+            "FROM Certification c " +
+            "WHERE c.user.id = :userId AND c.createdAt < :end " +
+            "GROUP BY c.challenge.id")
+    List<ChallengeCountProjection> findCountsByUserUntil(
+            @Param("userId") Long userId,
+            @Param("end") LocalDateTime end
     );
 
     // 특정 챌린지에 게시한 인증글 수 확인
@@ -49,6 +60,8 @@ public interface CertificationRepository extends JpaRepository<Certification, Lo
         group by c.challenge.id
     """)
     List<ChallengeCountProjection> findCountsByUser(@Param("userId") Long userId);
+
+    Optional<Certification> findFirstByChallenge_IdAndUser_IdOrderByCreatedAtAsc(Long challengeId, Long userId);
 
     interface ChallengeCountProjection {
         Long getChallengeId();

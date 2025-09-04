@@ -1,6 +1,7 @@
 package com.minimo.backend.challenge.api;
 
 import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
+import com.minimo.backend.challenge.dto.request.FindChallengeRequest;
 import com.minimo.backend.challenge.dto.response.*;
 import com.minimo.backend.global.aop.AssignUserId;
 import com.minimo.backend.global.config.swagger.SwaggerApiFailedResponse;
@@ -60,7 +61,10 @@ public interface ChallengeApi {
     )
     @AssignUserId
     @GetMapping("/not-certified")
-    ResponseEntity<ChallengePendingListResponse> getNotCertified(@Parameter(hidden = true) Long userId);
+    ResponseEntity<ChallengePendingListResponse> getNotCertified(
+            @Parameter(hidden = true) Long userId,
+            @Valid @RequestBody FindChallengeRequest request
+    );
 
     @Operation(
             summary = "인증한 챌린지 조회",
@@ -71,7 +75,10 @@ public interface ChallengeApi {
     )
     @AssignUserId
     @GetMapping("/certified")
-    ResponseEntity<ChallengePendingListResponse> getCertified(@Parameter(hidden = true) Long userId);
+    ResponseEntity<ChallengePendingListResponse> getCertified(
+            @Parameter(hidden = true) Long userId,
+            @Valid @RequestBody FindChallengeRequest request
+    );
 
     @Operation(
             summary = "챌린지 상세 조회",

@@ -19,6 +19,16 @@ public interface CertificationRepository extends JpaRepository<Certification, Lo
             LocalDateTime end
     );
 
+    // 특정 날짜 기준 챌린지 인증 수 조회
+    @Query("SELECT c.challenge.id AS challengeId, COUNT(c) AS cnt " +
+            "FROM Certification c " +
+            "WHERE c.user.id = :userId AND c.createdAt < :end " +
+            "GROUP BY c.challenge.id")
+    List<ChallengeCountProjection> findCountsByUserUntil(
+            @Param("userId") Long userId,
+            @Param("end") LocalDateTime end
+    );
+
     // 특정 챌린지에 게시한 인증글 수 확인
     long countByChallenge_IdAndUser_Id(Long challengeId, Long userId);
 

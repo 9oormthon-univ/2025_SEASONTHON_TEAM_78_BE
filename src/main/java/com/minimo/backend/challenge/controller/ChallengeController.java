@@ -2,6 +2,7 @@ package com.minimo.backend.challenge.controller;
 
 import com.minimo.backend.challenge.api.ChallengeApi;
 import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
+import com.minimo.backend.challenge.dto.request.FindChallengeRequest;
 import com.minimo.backend.challenge.dto.response.*;
 import com.minimo.backend.challenge.service.ChallengeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,15 +38,21 @@ public class ChallengeController implements ChallengeApi {
     }
 
     @GetMapping("/not-certified")
-    public ResponseEntity<ChallengePendingListResponse> getNotCertified(@AuthenticationPrincipal Long userId) {
-        ChallengePendingListResponse response = challengeService.findNotCertifiedToday(userId);
+    public ResponseEntity<ChallengePendingListResponse> getNotCertified(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody FindChallengeRequest request
+    ) {
+        System.out.println("API 실행");
+        ChallengePendingListResponse response = challengeService.findNotCertified(userId, request);
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/certified")
-    public ResponseEntity<ChallengePendingListResponse> getCertified(@AuthenticationPrincipal Long userId) {
-        ChallengePendingListResponse response = challengeService.findCertifiedToday(userId);
+    public ResponseEntity<ChallengePendingListResponse> getCertified(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody FindChallengeRequest request) {
+        ChallengePendingListResponse response = challengeService.findCertifiedToday(userId, request);
 
         return ResponseEntity.ok(response);
     }

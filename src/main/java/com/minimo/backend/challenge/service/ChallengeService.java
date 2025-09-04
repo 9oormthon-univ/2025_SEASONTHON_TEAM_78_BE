@@ -5,6 +5,7 @@ import com.minimo.backend.certification.repository.CertificationRepository;
 import com.minimo.backend.challenge.domain.Challenge;
 import com.minimo.backend.challenge.domain.ChallengeStatus;
 import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
+import com.minimo.backend.challenge.dto.request.FindChallengeRequest;
 import com.minimo.backend.challenge.dto.response.*;
 import com.minimo.backend.challenge.repository.ChallengeRepository;
 import com.minimo.backend.global.exception.BusinessException;
@@ -67,29 +68,32 @@ public class ChallengeService {
 
     // 오늘 인증이 되지 않은 챌린지
     @Transactional
-    public ChallengePendingListResponse findNotCertifiedToday(Long userId) {
+    public ChallengePendingListResponse findNotCertified(Long userId, FindChallengeRequest request) {
 
-        ZoneId zoneId = ZoneId.of("Asia/Seoul");
-        LocalDate today = LocalDate.now(zoneId);
-        LocalDateTime start = today.atStartOfDay();
+        LocalDate baseDate = request.getDate();
+
+        // 오늘 날짜 범위
+        LocalDateTime start = baseDate.atStartOfDay();
         LocalDateTime end = start.plusDays(1);
 
-        // 주간 캘린더
-        LocalDate startOfWeekDate = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+        // 주간 캘린더 날짜 범위
+        LocalDate startOfWeekDate = baseDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
         LocalDate endOfWeekDate = startOfWeekDate.plusDays(6);
         LocalDateTime startOfWeek = startOfWeekDate.atStartOfDay();
-        LocalDateTime endOfWeek = endOfWeekDate.plusDays(1).atStartOfDay(); // [start, end) 일관성
+        LocalDateTime endOfWeek = endOfWeekDate.plusDays(1).atStartOfDay();
 
         // 주간 캘린더 기록 저장
         Map<DayOfWeek, List<String>> weeklyIcons = buildWeeklyFirstThreeIcons(userId, startOfWeek, endOfWeek);
 
-        List<Challenge> myChallenges = challengeRepository.findAllByUser_Id(userId);
+        // 요청한 날짜에 존재하는 챌린지 조회
+        List<Challenge> myChallenges = challengeRepository.findAllByUser_IdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                userId, baseDate, baseDate);
 
-        // 오늘 인증한 챌린지 ID
-        Set<Long> certifiedToday = certificationRepository.findCertifiedChallengeIdsToday(userId, start, end);
+        // 요청한 날짜에 인증한 챌린지 ID
+        Set<Long> certifiedOnDate = certificationRepository.findCertifiedChallengeIdsToday(userId, start, end);
 
         // 사용자별 챌린지 전체 인증 카운트
-        Map<Long, Long> countMap = certificationRepository.findCountsByUser(userId).stream()
+        Map<Long, Long> countMap = certificationRepository.findCountsByUserUntil(userId, end).stream()
                 .collect(Collectors.toMap(
                         CertificationRepository.ChallengeCountProjection::getChallengeId,
                         CertificationRepository.ChallengeCountProjection::getCnt
@@ -97,9 +101,10 @@ public class ChallengeService {
 
         // 미인증 챌린지 필터링 + 달성률 계산
         List<ChallengePendingResponse> items = myChallenges.stream()
-                .filter(ch -> !certifiedToday.contains(ch.getId()))
+                .filter(ch -> !certifiedOnDate.contains(ch.getId()))
                 .map(ch -> {
-                    int totalDays = computeTotalDays(ch); // 0 가능성 방어 필요
+                    int totalDays = computeTotalDays(ch);
+                    System.out.println("total days = " + totalDays);
                     long postedDays = countMap.getOrDefault(ch.getId(), 0L);
                     int rate = computeAchievementRateSafe(postedDays, totalDays);
 
@@ -122,19 +127,20 @@ public class ChallengeService {
     // 달성률 계산
     private int computeAchievementRateSafe(long postedDays, int totalDays) {
         if (totalDays <= 0) return 0;
-        long clamped = Math.max(0, Math.min(postedDays, totalDays));
-        return (int) ((clamped * 100) / totalDays);
+        long rate = (postedDays * 100L) / totalDays;
+        return (int) Math.max(0, Math.min(rate, 100));
     }
 
     @Transactional
-    public ChallengePendingListResponse findCertifiedToday(Long userId) {
+    public ChallengePendingListResponse findCertifiedToday(Long userId, FindChallengeRequest request) {
 
-        ZoneId zoneId = ZoneId.of("Asia/Seoul");
-        LocalDate today = LocalDate.now(zoneId);
-        LocalDateTime start = today.atStartOfDay();
+        LocalDate baseDate = request.getDate();
+
+        // 오늘 날짜 범위
+        LocalDateTime start = baseDate.atStartOfDay();
         LocalDateTime end = start.plusDays(1);
 
-        LocalDate startOfWeekDate = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+        LocalDate startOfWeekDate = baseDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
         LocalDate endOfWeekDate = startOfWeekDate.plusDays(6);
         LocalDateTime startOfWeek = startOfWeekDate.atStartOfDay();
         LocalDateTime endOfWeek = endOfWeekDate.plusDays(1).atStartOfDay();
@@ -143,7 +149,9 @@ public class ChallengeService {
         Map<DayOfWeek, List<String>> weeklyIcons =
                 buildWeeklyFirstThreeIcons(userId, startOfWeek, endOfWeek);
 
-        List<Challenge> myChallenges = challengeRepository.findAllByUser_Id(userId);
+        // 요청한 날짜에 존재하는 챌린지 조회
+        List<Challenge> myChallenges = challengeRepository.findAllByUser_IdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                userId, baseDate, baseDate);
 
         // 오늘 인증한 챌린지 ID
         Set<Long> certifiedTodayIds = certificationRepository

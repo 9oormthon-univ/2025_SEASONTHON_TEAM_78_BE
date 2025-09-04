@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public interface CertificationRepository extends JpaRepository<Certification, Long> {
+public interface CertificationRepository extends JpaRepository<Certification, Long>, CertificationRepositoryCustom{
     // 정해진 시간동안 인증글 게시 여부 확인
     boolean existsByChallenge_IdAndUser_IdAndCreatedAtBetween(
             Long challengeId,

@@ -1,6 +1,7 @@
 package com.minimo.backend.challenge.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.minimo.backend.certification.domain.EmojiType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -48,5 +49,16 @@ public class ChallengeDetailResponse {
         @Schema(description = "인증 등록 날짜", example = "2025-08-25")
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.MM.dd")
         private LocalDate createdAt;
+
+        @Schema(description = "종류별 응원 개수")
+        private List<ReactionSummary> reactions;
+    }
+
+    @Getter
+    @Builder
+    public static class ReactionSummary {
+        private EmojiType emojiType;
+        private int count;
+        private List<String> nicknames;
     }
 }

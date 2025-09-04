@@ -1,7 +1,11 @@
 package com.minimo.backend.challenge.service;
 
 import com.minimo.backend.certification.domain.Certification;
+import com.minimo.backend.certification.domain.EmojiType;
 import com.minimo.backend.certification.repository.CertificationRepository;
+import com.minimo.backend.certification.repository.ReactionCountByEmojiProjection;
+import com.minimo.backend.certification.repository.ReactionProjection;
+import com.minimo.backend.certification.repository.ReactionRepository;
 import com.minimo.backend.challenge.domain.Challenge;
 import com.minimo.backend.challenge.domain.ChallengeStatus;
 import com.minimo.backend.challenge.dto.request.CreateChallengeRequest;
@@ -30,6 +34,7 @@ public class ChallengeService {
     private final ChallengeRepository challengeRepository;
     private final CertificationRepository certificationRepository;
     private final UserRepository userRepository;
+    private final ReactionRepository reactionRepository;
 
     @Transactional
     public CreateChallengeResponse create(Long userId, CreateChallengeRequest request) {
@@ -255,23 +260,62 @@ public class ChallengeService {
 
         String status = certifiedToday ? "certified" : "not_certified";
 
-        // 내 인증 목록
+        // 내 인증글 목록
         List<Certification> myCerts = certificationRepository
                 .findByChallenge_IdAndUser_IdOrderByCreatedAtDesc(challengeId, userId);
 
+        // 인증글 ID 목록
+        List<Long> certIds = myCerts.stream()
+                .map(Certification::getId)
+                .toList();
+
+        // 응원 집계
+        final Map<Long, Map<EmojiType, List<String>>> nicknameMapByCertAndEmoji;
+        if (!certIds.isEmpty()) {
+            List<ReactionProjection> rows = reactionRepository.findUsersByCertificationIds(certIds);
+
+            nicknameMapByCertAndEmoji = rows.stream().collect(
+                    Collectors.groupingBy(
+                            ReactionProjection::getCertificationId,
+                            Collectors.groupingBy(
+                                    ReactionProjection::getEmojiType,
+                                    Collectors.mapping(ReactionProjection::getNickname, Collectors.toList())
+                            )
+                    )
+            );
+        } else {
+            nicknameMapByCertAndEmoji = Collections.emptyMap();
+        }
+
         List<ChallengeDetailResponse.CertificationSummary> certSummaries = myCerts.stream()
-                .map(c -> ChallengeDetailResponse.CertificationSummary.builder()
-                        .imageUrl(c.getImageUrl())
-                        .title(c.getTitle())
-                        .content(c.getContent())
-                        .createdAt(c.getCreatedAt().toLocalDate())
-                        .build())
+                .map(c -> {
+                    Map<EmojiType, List<String>> byEmoji =
+                            nicknameMapByCertAndEmoji.getOrDefault(c.getId(), Collections.emptyMap());
+
+                    // EmojiType 별로 ReactionSummary 생성
+                    List<ChallengeDetailResponse.ReactionSummary> reactions = byEmoji.entrySet().stream()
+                            .map(e -> ChallengeDetailResponse.ReactionSummary.builder()
+                                    .emojiType(e.getKey())
+                                    .nicknames(e.getValue())
+                                    .count(e.getValue().size())
+                                    .build())
+                            .toList();
+
+                    return ChallengeDetailResponse.CertificationSummary.builder()
+                            .id(c.getId())
+                            .imageUrl(c.getImageUrl())
+                            .title(c.getTitle())
+                            .content(c.getContent())
+                            .createdAt(c.getCreatedAt().toLocalDate())
+                            .reactions(reactions)
+                            .build();
+                })
                 .toList();
 
         return ChallengeDetailResponse.builder()
                 .title(challenge.getTitle())
                 .content(challenge.getContent())
-                .challengeIcon(challenge.getChallengeIcon()) // 문자열 아이콘 필드 가정
+                .challengeIcon(challenge.getChallengeIcon())
                 .remainingDays(remainingDays)
                 .achievementRate(achievementRate)
                 .certifications(certSummaries)
@@ -302,6 +346,26 @@ public class ChallengeService {
         Challenge challenge = challengeRepository.findByIdAndUser_Id(challengeId, userId)
                 .orElseThrow(() -> new BusinessException(ExceptionType.CHALLENGE_NOT_FOUND));
 
+        // 인증글 조회 및 ID 추출
+        List<Certification> myCerts = certificationRepository.findByChallenge_IdAndUser_IdOrderByCreatedAtDesc(challengeId, userId);
+        List<Long> certIds = myCerts.stream().map(Certification::getId).toList();
+
+        // 응원 수 집계
+        List<CollectionDetailResponse.ReactionSummary> reactions;
+        if (!certIds.isEmpty()) {
+            List<ReactionCountByEmojiProjection> rows =
+                    reactionRepository.countByEmojiTypeForCertificationIds(certIds);
+
+            reactions = rows.stream()
+                    .map(r -> CollectionDetailResponse.ReactionSummary.builder()
+                            .emojiType(r.getEmojiType())
+                            .count((int) r.getCnt())
+                            .build())
+                    .toList();
+        } else {
+            reactions = List.of();
+        }
+
         String imageUrl = certificationRepository.findFirstByChallenge_IdAndUser_IdOrderByCreatedAtAsc(challengeId, userId)
                 .map(Certification::getImageUrl)
                 .orElse(null);
@@ -311,9 +375,41 @@ public class ChallengeService {
                 .content(challenge.getContent())
                 .challengeIcon(challenge.getChallengeIcon())
                 .imageUrl(imageUrl)
+                .reactions(reactions)
                 .build();
 
         return response;
+    }
+
+    @Transactional
+    public List<ActiveChallengeResponse> getMyActiveChallenges(Long userId) {
+        List<Challenge> challenges = challengeRepository.findByUser_IdAndStatus(userId, ChallengeStatus.ACTIVE);
+
+        LocalDate today = LocalDate.now();
+
+        return challenges.stream()
+                .map(ch -> {
+                    long remainingDays = calcRemainingDays(today, ch.getEndDate());
+
+                    // 이미 서비스에 있는 안전한 달성률 계산 메서드 활용
+                    long myCertCount = certificationRepository.countByChallenge_IdAndUser_Id(ch.getId(), userId);
+                    int achievementRate = computeAchievementRateSafe(myCertCount, ch.getDurationDays());
+
+                    return ActiveChallengeResponse.builder()
+                            .id(ch.getId())
+                            .challengeIcon(ch.getChallengeIcon())
+                            .title(ch.getTitle())
+                            .remainingDays(remainingDays)
+                            .achievementRate(achievementRate)
+                            .build();
+                })
+                .toList();
+    }
+
+    private long calcRemainingDays(LocalDate base, LocalDate endDate) {
+        if (endDate == null) return 0;
+        long diff = ChronoUnit.DAYS.between(base, endDate);
+        return Math.max(0, diff);
     }
 
     // 챌린지 전체 일수 계산

@@ -13,6 +13,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
     List<Challenge> findAllByUser_Id(Long userId);
     List<Challenge> findAllByUser_IdAndStatus(Long userId, ChallengeStatus status);
     Optional<Challenge> findByIdAndUser_Id(Long challengeId, Long userId);
+    List<Challenge> findByUser_IdAndStatus(Long userId, ChallengeStatus status);
 
     // 기준일에 진행 중인 챌린지 조회
     List<Challenge> findAllByUser_IdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(

@@ -302,6 +302,7 @@ public class ChallengeService {
                             .toList();
 
                     return ChallengeDetailResponse.CertificationSummary.builder()
+                            .id(c.getId())
                             .imageUrl(c.getImageUrl())
                             .title(c.getTitle())
                             .content(c.getContent())

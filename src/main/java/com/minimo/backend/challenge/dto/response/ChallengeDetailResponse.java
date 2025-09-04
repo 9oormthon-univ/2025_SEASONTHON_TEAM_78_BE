@@ -37,6 +37,9 @@ public class ChallengeDetailResponse {
     @Builder
     public static class CertificationSummary {
 
+        @Schema(description = "인증글 고유 ID", example = "1")
+        private Long id;
+
         @Schema(description = "인증 이미지 URL", example = "https://example.com/image.jpg")
         private String imageUrl;
 
@@ -46,7 +49,7 @@ public class ChallengeDetailResponse {
         @Schema(description = "인증글 내용", example = "첫 걸음을 내딛다!")
         private String content;
 
-        @Schema(description = "인증 등록 날짜", example = "2025-08-25")
+        @Schema(description = "인증 등록 날짜", example = "2025.08.25")
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.MM.dd")
         private LocalDate createdAt;
 

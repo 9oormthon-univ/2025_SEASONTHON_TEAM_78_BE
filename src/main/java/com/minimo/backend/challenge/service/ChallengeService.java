@@ -108,12 +108,15 @@ public class ChallengeService {
                     long postedDays = countMap.getOrDefault(ch.getId(), 0L);
                     int rate = computeAchievementRateSafe(postedDays, totalDays);
 
+                    // 요청 날짜 기준 남은 챌린지 일수 조회
+                    int remainingDays = (int) ChronoUnit.DAYS.between(baseDate, ch.getEndDate());
+
                     return ChallengePendingResponse.builder()
                             .id(ch.getId())
                             .title(Optional.ofNullable(ch.getTitle()).orElse(""))
                             .challengeIcon(Optional.ofNullable(ch.getChallengeIcon()).orElse(""))
                             .achievementRate(rate)
-                            .durationDays(totalDays)
+                            .remainingDays(remainingDays)
                             .build();
                 })
                 .toList();
@@ -172,12 +175,15 @@ public class ChallengeService {
                     long postedDays = countMap.getOrDefault(ch.getId(), 0L);
                     int rate = computeAchievementRateSafe(postedDays, totalDays);
 
+                    // 요청 날짜 기준 남은 챌린지 일수 조회
+                    int remainingDays = (int) ChronoUnit.DAYS.between(baseDate, ch.getEndDate());
+
                     return ChallengePendingResponse.builder()
                             .id(ch.getId())
                             .title(Optional.ofNullable(ch.getTitle()).orElse(""))
                             .challengeIcon(Optional.ofNullable(ch.getChallengeIcon()).orElse(""))
                             .achievementRate(rate)
-                            .durationDays(totalDays)
+                            .remainingDays(remainingDays)
                             .build();
                 })
                 .toList();

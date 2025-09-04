@@ -48,7 +48,7 @@ public interface ChallengeApi {
     @AssignUserId
     @DeleteMapping("/{challengeId}")
     ResponseEntity<Void> deleteChallenge(
-            @Parameter(description = "삭제할 챌린지의 고유 ID", required = true)
+            @Parameter(description = "삭제할 챌린지의 고유 ID", required = true, example = "1")
             @PathVariable Long challengeId
     );
 
@@ -92,7 +92,7 @@ public interface ChallengeApi {
     @GetMapping("/{challengeId}")
     public ResponseEntity<ChallengeDetailResponse> getDetail(
             @Parameter(hidden = true) Long userId,
-            @Parameter(description = "상세 조회할 챌린지의 고유 ID", required = true)
+            @Parameter(description = "상세 조회할 챌린지의 고유 ID", required = true, example = "1")
             @PathVariable Long challengeId
     );
 
@@ -119,7 +119,7 @@ public interface ChallengeApi {
     @GetMapping("/collenctions/{challengeId}")
     ResponseEntity<CollectionDetailResponse> getCollectionDetail(
             @Parameter(hidden = true) Long userId,
-            @Parameter(description = "조회할 챌린지의 고유 ID", required = true)
+            @Parameter(description = "조회할 챌린지의 고유 ID", required = true, example = "1")
             @PathVariable Long challengeId
     );
 }

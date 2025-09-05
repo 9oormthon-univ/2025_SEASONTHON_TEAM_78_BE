@@ -1,5 +1,6 @@
 package com.minimo.backend.global.config.security;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Configuration
 public class CorsConfig {
+    @Bean
     public static CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:8080", "http://localhost:5173"));

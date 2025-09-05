@@ -35,8 +35,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(CorsConfig.corsConfigurationSource()))
-
+                // .cors(cors -> cors.configurationSource(CorsConfig.corsConfigurationSource()))
+                .cors(Customizer.withDefaults())
                 // H2 콘솔 관련 제거 (iframe 설정 불필요)
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
 

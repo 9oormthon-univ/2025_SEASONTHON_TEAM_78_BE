@@ -73,7 +73,7 @@ public interface ChallengeApi {
     @GetMapping("/not-certified")
     ResponseEntity<ChallengePendingListResponse> getNotCertified(
             @Parameter(hidden = true) Long userId,
-            @Valid @RequestBody FindChallengeRequest request
+            @Valid @ModelAttribute FindChallengeRequest request
     );
 
     @Operation(
@@ -90,7 +90,7 @@ public interface ChallengeApi {
     @GetMapping("/certified")
     ResponseEntity<ChallengePendingListResponse> getCertified(
             @Parameter(hidden = true) Long userId,
-            @Valid @RequestBody FindChallengeRequest request
+            @Valid @ModelAttribute FindChallengeRequest request
     );
 
     @Operation(

@@ -9,10 +9,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.query.Page;
 
+import java.util.List;
 import java.util.Map;
 
 @Getter
 @Setter
+@Schema(name = "CertificationFeedResponse", description = "인증 피드 응답 DTO")
 public class CertificationFeedResponse {
 
     @Schema(description = "인증글 고유 ID", example = "1")
@@ -42,11 +44,11 @@ public class CertificationFeedResponse {
     private int totalReactions;
 
     @Schema(description = "종류별 응원 개수")
-    private Map<EmojiType, Integer> reactionCounts;
+    private List<ReactionCountResponse> reactionCounts;
 
 
     @QueryProjection
-    public CertificationFeedResponse(Long certificationId, String title, String content, String imageUrl, Long authorId, String authorNickname, String authorPicture, int totalReactions, Map<EmojiType, Integer> reactionCounts) {
+    public CertificationFeedResponse(Long certificationId, String title, String content, String imageUrl, Long authorId, String authorNickname, String authorPicture, int totalReactions, List<ReactionCountResponse> reactionCounts) {
         this.certificationId = certificationId;
         this.title = title;
         this.content = content;

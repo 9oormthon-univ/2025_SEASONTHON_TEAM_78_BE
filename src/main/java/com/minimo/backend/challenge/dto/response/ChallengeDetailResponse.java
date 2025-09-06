@@ -25,7 +25,13 @@ public class ChallengeDetailResponse {
     @Schema(description = "남은 챌린지 일수", example = "5")
     private long remainingDays;
 
-    @Schema(description = "챌린지 달성률(%)", example = "90")
+    @Schema(description = "진행한 인증 개수", example = "20")
+    private long certificationCount;
+
+    @Schema(description = "전체 챌린지 일수", example = "25")
+    private long totalChallengeDays;
+
+    @Schema(description = "챌린지 달성률(%)", example = "80")
     private int achievementRate;
 
     @Schema(description = "챌린지 인증 여부", example = "certified")

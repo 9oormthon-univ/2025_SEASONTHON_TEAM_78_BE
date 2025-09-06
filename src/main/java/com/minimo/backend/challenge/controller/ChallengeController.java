@@ -38,20 +38,20 @@ public class ChallengeController implements ChallengeApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/not-certified")
+    @PostMapping("/not-certified")
     public ResponseEntity<ChallengePendingListResponse> getNotCertified(
             @AuthenticationPrincipal Long userId,
-            @Valid @ModelAttribute FindChallengeRequest request
+            @Valid @RequestBody FindChallengeRequest request
     ) {
         ChallengePendingListResponse response = challengeService.findNotCertified(userId, request);
 
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/certified")
+    @PostMapping("/certified")
     public ResponseEntity<ChallengePendingListResponse> getCertified(
             @AuthenticationPrincipal Long userId,
-            @Valid @ModelAttribute FindChallengeRequest request) {
+            @Valid @RequestBody FindChallengeRequest request) {
         ChallengePendingListResponse response = challengeService.findCertifiedToday(userId, request);
 
         return ResponseEntity.ok(response);

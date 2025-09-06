@@ -39,6 +39,6 @@ public class Certification extends BaseEntity {
     @Column(nullable = false, length = 300)
     private String content;
 
-    @OneToMany(mappedBy = "certification", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "certification", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<Reaction> reactions = new ArrayList<>();
 }

@@ -92,8 +92,6 @@ public class CertificationService {
                 .imageId(imageId)
                 .build();
 
-        challenge.addCertification(certification);
-
         Certification savedCertification = certificationRepository.save(certification);
 
         long count = certificationRepository.countByChallenge_IdAndUser_Id(challengeId, userId);

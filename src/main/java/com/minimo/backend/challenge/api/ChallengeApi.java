@@ -133,7 +133,7 @@ public interface ChallengeApi {
     @SwaggerApiResponses(
         success = @SwaggerApiSuccessResponse(
                 description = "컬렉션 카드 상세 조회 성공",
-                response = CollectionResponse.class),
+                response = CollectionDetailResponse.class),
         errors = @SwaggerApiFailedResponse(ExceptionType.CHALLENGE_NOT_FOUND)
     )
     @ApiResponse(content = @Content(schema = @Schema(implementation = CollectionDetailResponse.class)))

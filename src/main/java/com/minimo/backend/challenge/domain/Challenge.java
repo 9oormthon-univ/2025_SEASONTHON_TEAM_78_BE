@@ -1,5 +1,6 @@
 package com.minimo.backend.challenge.domain;
 
+import com.minimo.backend.certification.domain.Certification;
 import com.minimo.backend.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -44,6 +47,11 @@ public class Challenge {
     @Column(length = 16)
     private ChallengeStatus status;
 
+    @OneToMany(mappedBy = "challenge",
+            cascade = CascadeType.REMOVE,
+            orphanRemoval = true)
+    private List<Certification> certifications = new ArrayList<>();
+
     @PrePersist
     public void onCreate() {
         if (this.startDate == null) {
@@ -56,5 +64,10 @@ public class Challenge {
 
     public void complete() {
         this.status = ChallengeStatus.COMPLETED;
+    }
+
+    public void addCertification(Certification certification) {
+        this.certifications.add(certification);
+        certification.setChallenge(this);
     }
 }

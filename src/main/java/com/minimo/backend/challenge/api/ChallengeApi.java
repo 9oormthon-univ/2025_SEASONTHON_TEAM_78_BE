@@ -27,7 +27,9 @@ public interface ChallengeApi {
             description = "새로운 챌린지를 등록합니다."
     )
     @SwaggerApiResponses(
-            success = @SwaggerApiSuccessResponse(description = "챌린지 등록 성공"),
+            success = @SwaggerApiSuccessResponse(
+                    description = "챌린지 등록 성공",
+                    response = CreateChallengeResponse.class),
             errors = @SwaggerApiFailedResponse(ExceptionType.USER_NOT_FOUND)
     )
     @AssignUserId
@@ -57,7 +59,9 @@ public interface ChallengeApi {
             description = "오늘 인증하지 않은 챌린지를 조회합니다."
     )
     @SwaggerApiResponses(
-        success = @SwaggerApiSuccessResponse(description = "미인증 챌린지 목록 조회 성공")
+        success = @SwaggerApiSuccessResponse(
+                description = "미인증 챌린지 목록 조회 성공",
+                response = ChallengePendingListResponse.class)
     )
     @AssignUserId
     @GetMapping("/not-certified")
@@ -71,7 +75,9 @@ public interface ChallengeApi {
             description = "오늘 인증한 챌린지를 조회합니다."
     )
     @SwaggerApiResponses(
-            success = @SwaggerApiSuccessResponse(description = "인증한 챌린지 목록 조회 성공")
+            success = @SwaggerApiSuccessResponse(
+                    description = "인증한 챌린지 목록 조회 성공",
+                    response = ChallengePendingListResponse.class)
     )
     @AssignUserId
     @GetMapping("/certified")
@@ -85,7 +91,9 @@ public interface ChallengeApi {
             description = "해당 챌린지의 상세 내용을 조회합니다."
     )
     @SwaggerApiResponses(
-            success = @SwaggerApiSuccessResponse(description = "챌린지 상세 조회 성공"),
+            success = @SwaggerApiSuccessResponse(
+                    description = "챌린지 상세 조회 성공",
+                    response = ChallengeDetailResponse.class),
             errors = @SwaggerApiFailedResponse(ExceptionType.CHALLENGE_NOT_FOUND)
     )
     @AssignUserId
@@ -101,7 +109,9 @@ public interface ChallengeApi {
             description = "사용자가 완료한 챌린지 컬렉션 목록을 조회합니다."
     )
     @SwaggerApiResponses(
-            success = @SwaggerApiSuccessResponse(description = "컬렉션 목록 조회 성공")
+            success = @SwaggerApiSuccessResponse(
+                    description = "컬렉션 목록 조회 성공",
+                    response = CollectionResponse.class)
     )
     @AssignUserId
     @GetMapping("/collections")
@@ -112,7 +122,9 @@ public interface ChallengeApi {
             description = "컬렉션 카드의 상세정보를 조회합니다."
     )
     @SwaggerApiResponses(
-        success = @SwaggerApiSuccessResponse(description = "컬렉션 카드 상세 조회 성공"),
+        success = @SwaggerApiSuccessResponse(
+                description = "컬렉션 카드 상세 조회 성공",
+                response = CollectionResponse.class),
         errors = @SwaggerApiFailedResponse(ExceptionType.CHALLENGE_NOT_FOUND)
     )
     @AssignUserId
@@ -128,7 +140,9 @@ public interface ChallengeApi {
             description = "현재 진행중인 챌린지 목록을 조회합니다."
     )
     @SwaggerApiResponses(
-            success = @SwaggerApiSuccessResponse(description = "챌린지 목록 조회 성공")
+            success = @SwaggerApiSuccessResponse(
+                    description = "챌린지 목록 조회 성공",
+                    response = ActiveChallengeResponse.class)
     )
     @AssignUserId
     @GetMapping("/active")

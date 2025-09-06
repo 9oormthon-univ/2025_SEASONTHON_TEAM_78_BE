@@ -70,10 +70,10 @@ public interface ChallengeApi {
     )
     @ApiResponse(content = @Content(schema = @Schema(implementation = ChallengePendingListResponse.class)))
     @AssignUserId
-    @GetMapping("/not-certified")
+    @PostMapping("/not-certified")
     ResponseEntity<ChallengePendingListResponse> getNotCertified(
             @Parameter(hidden = true) Long userId,
-            @Valid @ModelAttribute FindChallengeRequest request
+            @Valid @RequestBody FindChallengeRequest request
     );
 
     @Operation(
@@ -87,10 +87,10 @@ public interface ChallengeApi {
     )
     @ApiResponse(content = @Content(schema = @Schema(implementation = ChallengePendingListResponse.class)))
     @AssignUserId
-    @GetMapping("/certified")
+    @PostMapping("/certified")
     ResponseEntity<ChallengePendingListResponse> getCertified(
             @Parameter(hidden = true) Long userId,
-            @Valid @ModelAttribute FindChallengeRequest request
+            @Valid @RequestBody FindChallengeRequest request
     );
 
     @Operation(

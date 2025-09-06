@@ -264,6 +264,8 @@ public class ChallengeService {
         List<Certification> myCerts = certificationRepository
                 .findByChallenge_IdAndUser_IdOrderByCreatedAtDesc(challengeId, userId);
 
+        long certificationCount = myCerts.size();
+
         // 인증글 ID 목록
         List<Long> certIds = myCerts.stream()
                 .map(Certification::getId)
@@ -319,6 +321,8 @@ public class ChallengeService {
                 .remainingDays(remainingDays)
                 .achievementRate(achievementRate)
                 .certifications(certSummaries)
+                .totalChallengeDays(durationDays)
+                .certificationCount(certificationCount)
                 .status(status)
                 .build();
     }

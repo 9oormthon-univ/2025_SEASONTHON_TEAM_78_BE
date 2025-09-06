@@ -16,6 +16,7 @@ import com.minimo.backend.challenge.repository.ChallengeRepository;
 import com.minimo.backend.global.config.cloudinary.CloudinaryImageService;
 import com.minimo.backend.global.exception.BusinessException;
 import com.minimo.backend.global.exception.ExceptionType;
+import com.minimo.backend.global.response.GlobalPageResponse;
 import com.minimo.backend.user.domain.User;
 import com.minimo.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -199,7 +200,7 @@ public class CertificationService {
     }
 
     @Transactional(readOnly = true)
-    public List<CertificationFeedResponse> getFeed(Long userId, int page, int size) {
+    public GlobalPageResponse<CertificationFeedResponse> getFeed(Long userId, int page, int size) {
         return certificationRepository.findCertificationFeed(userId, PageRequest.of(page, size));
     }
 

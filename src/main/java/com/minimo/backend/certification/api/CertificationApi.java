@@ -11,6 +11,7 @@ import com.minimo.backend.global.config.swagger.SwaggerApiFailedResponse;
 import com.minimo.backend.global.config.swagger.SwaggerApiResponses;
 import com.minimo.backend.global.config.swagger.SwaggerApiSuccessResponse;
 import com.minimo.backend.global.exception.ExceptionType;
+import com.minimo.backend.global.response.GlobalPageResponse;
 import com.minimo.backend.global.response.ResponseBody;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -82,7 +83,7 @@ public interface CertificationApi {
     @SwaggerApiResponses(
             success = @SwaggerApiSuccessResponse(
                     description = "피드 조회 성공",
-                    response = CertificationFeedResponse.class
+                    responsePage = CertificationFeedResponse.class
             ),
             errors = {
                     @SwaggerApiFailedResponse(ExceptionType.NEED_AUTHORIZED),
@@ -91,7 +92,7 @@ public interface CertificationApi {
     @AssignUserId
     @GetMapping("/feed")
     @PreAuthorize("isAuthenticated()")
-    ResponseEntity<ResponseBody<List<CertificationFeedResponse>>> getFeed(
+    ResponseEntity<ResponseBody<GlobalPageResponse<CertificationFeedResponse>>> getFeed(
             @Parameter(hidden = true) Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size

@@ -1,16 +1,18 @@
 package com.minimo.backend.certification.dto.response;
 
 import com.minimo.backend.certification.domain.EmojiType;
+import com.minimo.backend.global.response.GlobalPageResponse;
+import com.querydsl.core.annotations.QueryProjection;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.query.Page;
 
 import java.util.Map;
 
 @Getter
 @Setter
-@AllArgsConstructor
 public class CertificationFeedResponse {
 
     @Schema(description = "인증글 고유 ID", example = "1")
@@ -41,4 +43,18 @@ public class CertificationFeedResponse {
 
     @Schema(description = "종류별 응원 개수")
     private Map<EmojiType, Integer> reactionCounts;
+
+
+    @QueryProjection
+    public CertificationFeedResponse(Long certificationId, String title, String content, String imageUrl, Long authorId, String authorNickname, String authorPicture, int totalReactions, Map<EmojiType, Integer> reactionCounts) {
+        this.certificationId = certificationId;
+        this.title = title;
+        this.content = content;
+        this.imageUrl = imageUrl;
+        this.authorId = authorId;
+        this.authorNickname = authorNickname;
+        this.authorPicture = authorPicture;
+        this.totalReactions = totalReactions;
+        this.reactionCounts = reactionCounts;
+    }
 }

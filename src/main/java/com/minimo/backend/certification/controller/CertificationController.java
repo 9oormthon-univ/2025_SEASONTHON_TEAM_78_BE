@@ -9,6 +9,7 @@ import com.minimo.backend.certification.dto.response.CreateCertificationResponse
 import com.minimo.backend.certification.dto.response.UpdateCertificationResponse;
 import com.minimo.backend.certification.service.CertificationService;
 import com.minimo.backend.global.aop.AssignUserId;
+import com.minimo.backend.global.response.GlobalPageResponse;
 import com.minimo.backend.global.response.ResponseBody;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -56,12 +57,12 @@ public class CertificationController implements CertificationApi {
     @AssignUserId
     @GetMapping("/feed")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ResponseBody<List<CertificationFeedResponse>>> getFeed(
+    public ResponseEntity<ResponseBody<GlobalPageResponse<CertificationFeedResponse>>> getFeed(
             Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        List<CertificationFeedResponse> feed = certificationService.getFeed(userId, page, size);
+        GlobalPageResponse<CertificationFeedResponse> feed = certificationService.getFeed(userId, page, size);
         return ResponseEntity.ok(createSuccessResponse(feed));
     }
 

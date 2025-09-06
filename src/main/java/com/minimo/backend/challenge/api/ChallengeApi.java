@@ -8,8 +8,12 @@ import com.minimo.backend.global.config.swagger.SwaggerApiFailedResponse;
 import com.minimo.backend.global.config.swagger.SwaggerApiResponses;
 import com.minimo.backend.global.config.swagger.SwaggerApiSuccessResponse;
 import com.minimo.backend.global.exception.ExceptionType;
+import com.minimo.backend.token.dto.response.TokenResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.repository.query.Param;
@@ -32,6 +36,7 @@ public interface ChallengeApi {
                     response = CreateChallengeResponse.class),
             errors = @SwaggerApiFailedResponse(ExceptionType.USER_NOT_FOUND)
     )
+    @ApiResponse(content = @Content(schema = @Schema(implementation = CreateChallengeResponse.class)))
     @AssignUserId
     @PostMapping
     ResponseEntity<CreateChallengeResponse> createChallenge(
@@ -63,6 +68,7 @@ public interface ChallengeApi {
                 description = "미인증 챌린지 목록 조회 성공",
                 response = ChallengePendingListResponse.class)
     )
+    @ApiResponse(content = @Content(schema = @Schema(implementation = ChallengePendingListResponse.class)))
     @AssignUserId
     @GetMapping("/not-certified")
     ResponseEntity<ChallengePendingListResponse> getNotCertified(
@@ -79,6 +85,7 @@ public interface ChallengeApi {
                     description = "인증한 챌린지 목록 조회 성공",
                     response = ChallengePendingListResponse.class)
     )
+    @ApiResponse(content = @Content(schema = @Schema(implementation = ChallengePendingListResponse.class)))
     @AssignUserId
     @GetMapping("/certified")
     ResponseEntity<ChallengePendingListResponse> getCertified(
@@ -96,6 +103,7 @@ public interface ChallengeApi {
                     response = ChallengeDetailResponse.class),
             errors = @SwaggerApiFailedResponse(ExceptionType.CHALLENGE_NOT_FOUND)
     )
+    @ApiResponse(content = @Content(schema = @Schema(implementation = ChallengeDetailResponse.class)))
     @AssignUserId
     @GetMapping("/{challengeId}")
     public ResponseEntity<ChallengeDetailResponse> getDetail(
@@ -113,6 +121,7 @@ public interface ChallengeApi {
                     description = "컬렉션 목록 조회 성공",
                     response = CollectionResponse.class)
     )
+    @ApiResponse(content = @Content(schema = @Schema(implementation = CollectionResponse.class)))
     @AssignUserId
     @GetMapping("/collections")
     ResponseEntity<List<CollectionResponse>> getCollections(@Parameter(hidden = true) Long userId);
@@ -127,6 +136,7 @@ public interface ChallengeApi {
                 response = CollectionResponse.class),
         errors = @SwaggerApiFailedResponse(ExceptionType.CHALLENGE_NOT_FOUND)
     )
+    @ApiResponse(content = @Content(schema = @Schema(implementation = CollectionDetailResponse.class)))
     @AssignUserId
     @GetMapping("/collenctions/{challengeId}")
     ResponseEntity<CollectionDetailResponse> getCollectionDetail(
@@ -144,6 +154,7 @@ public interface ChallengeApi {
                     description = "챌린지 목록 조회 성공",
                     response = ActiveChallengeResponse.class)
     )
+    @ApiResponse(content = @Content(schema = @Schema(implementation = ActiveChallengeResponse.class)))
     @AssignUserId
     @GetMapping("/active")
     ResponseEntity<List<ActiveChallengeResponse>> getMyActiveChallenges(

@@ -1,7 +1,7 @@
 package com.minimo.backend.certification.domain;
 
 public enum EmojiType {
-    CHEER,   // 응원
+    HEART,   // 하트
     CLAP,    // 박수
     FIRE     // 불꽃
 }
